@@ -112,3 +112,11 @@ Tests: Vitest 8/8, Playwright 6/6 (Chrome with WebGPU), type check clean.
 ### F11 (browser guidance): proposal for the user
 
 Recommend **Chrome or Edge**, and **support Firefox** as a fully working browser (60 fps here, given the no-wait design), with a note that Firefox reacts more slowly to some actions that need a GPU read-back (≈ 0.1 s). The phone question stays open until the second phone run.
+
+### Phone, second run (2026-11-16)
+
+`dev/reports/g0/user/caps_phone_2.json`: all three adapter requests (core high-performance, core, compatibility)
+return **no adapter**. Chrome 157 on this phone exposes `navigator.gpu` but no WebGPU device, not even in
+compatibility mode. FOORT Flight cannot run there; the phone gets the explanation page with the link to FOORT-GPU
+(WebGL2 works). Possible later check, not for players: Chrome's `chrome://flags/#enable-unsafe-webgpu` would show whether
+it is a blocklist or missing support.
