@@ -1,23 +1,21 @@
 // @ts-check
-// FOORT Flight bootstrap. G0: check for WebGPU and show either a ready note or the explanation page (plan Section 3).
-import { createGpu, gpuFailed, noWebGPUMessage } from './gpu/device.js';
+// FOORT Flight bootstrap. G0 (plan v1.1): check for WebGL2 with float targets and 6 draw buffers, and show either a
+// ready note or the explanation page (plan Section 3).
+import { checkWebGL2, noWebGL2Message } from './gl/context.js';
 
-async function main() {
+function main() {
   const box = /** @type {HTMLElement} */ (document.getElementById('gpu'));
-  const g = await createGpu();
-  if (gpuFailed(g)) {
-    box.innerHTML = noWebGPUMessage(g);
-    document.body.dataset.webgpu = 'missing';
+  const c = checkWebGL2();
+  if (!c.ok) {
+    box.innerHTML = noWebGL2Message(c);
+    document.body.dataset.gl = 'missing';
     return;
   }
-  const name = Object.values(g.info).join(' / ') || 'a GPU (name hidden by the browser)';
-  box.innerHTML = `<span class="ok">WebGPU is ready</span> on ${name.replace(/[&<>]/g, '')}` +
-    (g.isFallbackAdapter ? ' <span class="bad">(a software fallback adapter: it will be very slow)</span>' : '') + '.';
-  document.body.dataset.webgpu = 'ready';
-  g.device.destroy();
+  box.innerHTML = `<span class="ok">WebGL2 is ready</span> on ${c.renderer.replace(/[&<>]/g, '')}.`;
+  document.body.dataset.gl = 'ready';
 }
 
-main().catch((e) => {
+try { main(); } catch (e) {
   /** @type {HTMLElement} */ (document.getElementById('gpu')).textContent = `Start-up failed: ${e}`;
-  document.body.dataset.webgpu = 'error';
-});
+  document.body.dataset.gl = 'error';
+}

@@ -1,6 +1,6 @@
 # FOORT Flight — Stage 2A plan (sandbox spaceship around black holes and fuzzballs)
 
-Status: v1.0 (2026-11-16). Owner: Daniel Mayerson. Executor: Claude Code, in a **new repository** (working name `foort-flight`, decision F1).
+Status: v1.1 (2026-11-16). v1.1 changes the platform from WebGPU to **WebGL2** (decision F12, after the G0 device measurements): Sections 1.2, 2, 3, 5, 6, 8, 9 (G0, G1) and 11. Owner: Daniel Mayerson. Executor: Claude Code, in a **new repository** (working name `foort-flight`, decision F1).
 
 Stage 2A is the sandbox version of a spaceship game: you fly freely around a Kerr black hole or an ST3Cr ring fuzzball, and the view is numerically ray traced in real time, with gravitational lensing, redshift, Doppler, aberration and finite light-travel time. Missions come later (Stage 2B).
 
@@ -51,7 +51,7 @@ Stage 2A is the sandbox version of a spaceship game: you fly freely around a Ker
 - Other metrics.
 - In-world objects such as beacons or other ships (they need ray shooting toward objects).
 - Rendering from inside a horizon.
-- A WebGL2 fallback, multiplayer, sound and translation.
+- A WebGPU backend (deferred: keep the GPU code behind a small backend interface, as FOORT-GPU does, so it can be added later), multiplayer, sound and translation.
 
 ---
 
@@ -75,8 +75,8 @@ Stage 2A is the sandbox version of a spaceship game: you fly freely around a Ker
 | `js/units.js` | physical units and presets |
 | `js/export.js` | PNG/video export (adapt) |
 | `sky/*.jpg` | sky backgrounds (check and record each image's licence and credit in `CREDITS.md`) |
-| `shaders/glsl/*` | **source for the WGSL port** (not loaded by the game) |
-| `tools/codegen/gen_metrics.py` | extend to emit WGSL as well as GLSL |
+| `shaders/glsl/*` | **the tracer the game runs**, loaded from `vendor/` unchanged (camera, integrators, crossings, tail, record) |
+| `tools/codegen/gen_metrics.py` | closed-form metric shaders (GLSL), as in FOORT-GPU |
 
 Also carry over FOORT-GPU's hard-won conventions:
 - the pole-distance polar coordinate δ with a hemisphere sign;
@@ -91,14 +91,22 @@ Also carry over FOORT-GPU's hard-won conventions:
 
 ---
 
-## 3. Platform: WebGPU-first
+## 3. Platform: WebGL2 (v1.1, decision F12)
 
-- **WebGPU compute shaders (WGSL)** for all ray tracing; a fragment pass for display. There is no WebGL2 fallback in 2A: if `navigator.gpu` is missing or adapter creation fails, show a clear page that explains why and links to the FOORT-GPU viewer.
-- **Known risks** (check them in G0 and report):
-  - **Firefox WebGPU latency.** In FOORT-GPU's M0 benchmark, every CPU wait on a submitted tile cost about 75–100 ms in Firefox. Therefore **never wait on the CPU per chunk.** Submit a frame's worth of trace work (sized by a GPU-time budget) together with the display pass, and measure with timestamp queries when available. Use `onSubmittedWorkDone` or mapped read-backs only occasionally, and asynchronously.
-  - **The user's phone** (Samsung, Xclipse 920 GPU): Chrome's WebGPU on Android is documented for Qualcomm and ARM GPUs, so it may be unavailable there. Report what the capability page says.
-  - **Limits:** `maxStorageBufferBindingSize`, `maxBufferSize`, `maxComputeInvocationsPerWorkgroup`. Request higher limits where available.
-- **Precision:** f32 only (WGSL has no f64). All metric, fluid, camera-frame and ship-dynamics computations are in JS doubles; the GPU integrates rays only.
+- **WebGL2 fragment shaders** for all ray tracing, as in FOORT-GPU: a trace pass renders rays into float render targets (the 24-float record in 6 RGBA32F attachments), a display pass turns records into the image. **Requirements:** `EXT_color_buffer_float`, at least 6 draw buffers, highp float in fragment shaders. Without them, show a clear page that explains why and links to the FOORT-GPU viewer.
+- **Why not WebGPU** (G0/G0b measurements, `PROGRESS.md`):
+  - the user's phone (Samsung, Xclipse 920, Chrome 157) has no WebGPU adapter in any mode, but WebGL2 works there with float targets and 8 draw buffers;
+  - Firefox's WebGPU costs ≈ 100 ms per CPU wait (WebGL2 fence: 5 ms);
+  - the frame loops reach the same throughput in both APIs on the laptop, Chrome and Firefox;
+  - FOORT-GPU's GLSL tracer is validated (quality gate, FOORT parity) and runs unchanged: no port.
+- **Scheduling without GPU timers.** Timer queries (`EXT_disjoint_timer_query_webgl2`) exist in Chrome on the laptop but not in Firefox nor on the phone. Therefore:
+  - **never wait on the CPU per chunk.** Each frame submits its trace chunks together with the display pass and ends with one fence; fences are polled without blocking at the start of later frames;
+  - **overload** is judged from the frames still in flight (≥ 2 means the GPU is behind), and the frame interval relative to the device's own refresh interval (measured; displays run at 24–120 Hz), never against a fixed 16.7 ms;
+  - chunk costs come from fence-timed calibration, refined by timer queries where they exist;
+  - read-backs (`readPixels`, staleness data) only occasionally, asynchronously via PBO + fence where possible.
+- **Watchdog:** one draw must stay well below the OS GPU watchdog (≈ 2 s on Windows); chunks are sized as in FOORT-GPU's tiles.
+- **Phones:** supported with smaller cubemap faces (F5) and a lower frame-rate target where the device runs below 60 Hz.
+- **Precision:** float32 on the GPU. All metric, fluid, camera-frame and ship-dynamics computations are in JS doubles; the GPU integrates rays only.
 
 ---
 
@@ -200,7 +208,7 @@ A full FOORT-GPU-quality trace of a 1024² image takes about a second on the use
 
 ### 5.3 Direct per-pixel tracing (reference and stills)
 
-The same WGSL tracer with a general tetrad camera renders the screen directly. Use it:
+The same GLSL tracer with a general tetrad camera renders the screen directly. Use it:
 - as the validation reference for the cubemap;
 - for paused "photo mode" stills at full quality;
 - for screenshots, optionally.
@@ -210,9 +218,9 @@ The same WGSL tracer with a general tetrad camera renders the screen directly. U
 - **Per-frame budget:**
   - the display pass;
   - plus N trace chunks (cubemap texels or direct pixels), with N adapted so that frame time ≤ 16.7 ms (or 33 ms in a low-power mode);
-  - no CPU fences per chunk.
+  - no CPU waits per chunk (one fence per frame, polled without blocking; Section 3).
 - **Tiers** after FOORT-GPU (Reference / High / Normal): integrator settings (Normal: FOORT-GPU's error-controlled RK at tolerance 0.1, which passed its quality gate), face resolution and refresh budget. Choose them automatically by a startup probe; the user can override them.
-- **Kerr:** closed-form WGSL shader (generated by the extended codegen). **ST3Cr:** tabulated, with the G3 = G4 identity and texel reuse as in FOORT-GPU. Bake new tables in a worker when λ changes (λ changes are not allowed mid-flight in physical mode; they reset the scene).
+- **Kerr:** FOORT-GPU's closed-form GLSL shader. **ST3Cr:** tabulated, with the G3 = G4 identity and texel reuse as in FOORT-GPU. Bake new tables in a worker when λ changes (λ changes are not allowed mid-flight in physical mode; they reset the scene).
 
 ---
 
@@ -228,7 +236,7 @@ A separate panel, or a picture-in-picture toggle with `m`. It is a flat, explici
 - the **predicted trajectory** with engines off (CPU integration ahead, e.g. 2–3 orbits or until an ending event, updated a few times per second), plus the trail of the past path;
 - pan and zoom.
 
-Draw it on a 2D canvas (or a simple WebGPU line pass).
+Draw it on a 2D canvas (or a simple WebGL2 line pass).
 
 ---
 
@@ -320,22 +328,22 @@ Each scenario is `{ id, title, spacetime, params, mode, ship: { x, u, attitude }
 ```
 <repo>/
   index.html  style.css  README.md  PROGRESS.md  DECISIONS.md  CREDITS.md  FLIGHT_STAGE2A_PLAN.md
-  caps.html                      WebGPU capability report
+  caps.html  latency.html        GPU capability report and latency test (G0)
   js/
-    main.js                      bootstrap, WebGPU device, loop
-    gpu/                         device.js, tracer.js (dispatch, budget), cubemap.js, display.js, timing.js
+    main.js                      bootstrap, WebGL2 context, loop
+    gl/                          context.js, tracer.js (draws, budget), cubemap.js, display.js, timing.js (fences, timer queries)
     physics/                     ksKerr.js, st3crCartesian.js, christoffel.js, ship.js (forced geodesic + FW frame),
                                  observers.js (ZAMO, static, circular), redshift.js, tidal.js, events.js
     camera/                      generalTetrad.js (extends vendored TetradCamera), transforms.js (ship -> tracer coords)
     game/                        modes.js, controls.js (keyboard, mouse, gamepad, touch), assists.js, scenarios.js, hud.js, map.js
     ui/                          panels.js (normal/expert from one control list), persistence.js
     export/                      screenshot.js, video.js
-  shaders/wgsl/                  common.wgsl, trace_closed_kerr.wgsl, trace_tabulated.wgsl, cubemap_trace.wgsl,
-                                 display.wgsl, sky.wgsl, tonemap.wgsl
+  shaders/glsl/                  the game's own GLSL (display, sky, tone map, cubemap lookup); the tracer itself is
+                                 loaded from vendor/foort-gpu/shaders/glsl/
   scenarios/                     *.json
   vendor/foort-gpu/              snapshot + VERSION (never edited)
   noise/  sky/                   (vendored data, or symlinks to vendor paths)
-  tools/                         sync_foort_gpu.sh, codegen (WGSL output)
+  tools/                         sync_foort_gpu.sh
   dev/                           package.json, tests (unit, e2e), scripts, reports (images git-ignored)
 ```
 
@@ -343,7 +351,7 @@ Each scenario is `{ id, title, spacetime, params, mode, ship: { x, u, attitude }
 
 ## 9. Milestones
 
-### G0 — Repository, vendoring, WebGPU capability
+### G0 — Repository, vendoring, GPU capability (done; v1.1 adds G0b)
 
 **Deliverables:**
 - repo scaffold;
@@ -354,15 +362,17 @@ Each scenario is `{ id, title, spacetime, params, mode, ship: { x, u, attitude }
 
 **CHECKPOINT G0:** the user opens `caps.html` and the latency test on their laptop (Chrome and Firefox) and phone. Record what works, and decide on the default browser guidance.
 
-### G1 — WGSL tracer core, static observer
+**G0b (added in v1.1):** the latency test also runs with WebGL2 (fragment-shader chunks into 6 RGBA32F attachments, fence-driven budget). Its device results led to F12 (WebGL2).
+
+### G1 — WebGL2 tracer integration, static observer
 
 **Deliverables:**
-- port `common.glsl`, the closed-form Kerr and the tabulated tracer (ST3Cr, with G3 = G4 and texel reuse) to WGSL, with the record format unchanged (24 floats);
-- error-controlled RK (Normal) and RK4 + FOORT step (Reference);
-- a static-observer test page;
-- the per-frame budget scheduler (no per-chunk CPU waits).
+- a lean game backend (`js/gl/`) that compiles and runs the **vendored GLSL tracer unchanged** (closed-form Kerr; tabulated ST3Cr with G3 = G4 and texel reuse; the Normal and Reference tiers), with the 24-float record in 6 RGBA32F attachments. Reuse FOORT-GPU's backend code where it fits (vendor it, or wrap it; record the choice);
+- the camera through the vielbein uniform only: FOORT's screen is a pinhole projection, so a general tetrad, a cube face (90° square screen) and the ship's screen are all expressed through `uE`, `uCam` and `uScreen`, without editing the shader. Verify this in G1; if a shader change is unavoidable, write it up as an upstream note for FOORT-GPU first;
+- the per-frame scheduler of Section 3 (fences, frames in flight, refresh-relative intervals; timer queries only to refine);
+- a static-observer test page.
 
-**Tests:** WGSL vs FOORT-GPU WebGL2 records on identical rays (same scenes as FOORT-GPU's quality gate): agreement at FOORT-GPU's exactness noise floor; timings on the user's laptop vs FOORT-GPU.
+**Tests:** records against the FOORT-GPU viewer on identical rays (the quality-gate scenes): identical up to the float32 noise floor; the scheduler holds the device's frame rate on the laptop (Chrome, Firefox) and the phone while tracing; timings vs FOORT-GPU.
 
 **CHECKPOINT G1.**
 
@@ -479,4 +489,5 @@ Each scenario is `{ id, title, spacetime, params, mode, ship: { x, u, attitude }
 | F8 | Time rate | 1 s wall = 1 M of proper time by default; time warp up to 100×, disabled while thrusting |
 | F9 | Controls | keyboard + mouse primary, gamepad supported, basic touch |
 | F10 | Fuel / Δv budget | off by default (sandbox) |
-| F11 | Browser guidance | decided at G0 from the user's devices (Chrome recommended if Firefox latency persists) |
+| F11 | Browser guidance | **decided at G0:** any modern browser with WebGL2 (Chrome, Edge, Firefox; phones included) |
+| F12 | Graphics API (added in v1.1) | **decided at G0b: WebGL2**, as FOORT-GPU; WebGPU deferred behind the backend interface |

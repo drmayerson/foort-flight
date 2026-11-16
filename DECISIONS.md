@@ -11,7 +11,8 @@ float32 and GPU conventions carried over here.
 |---|---|---|
 | F1 | **decided by the user** (2026-11-16: "Work inside the empty repo foort-flight") | repository `drmayerson/foort-flight`, local clone `Dropbox/Github.io/foort-flight` next to `foort-gpu` |
 | F2–F10 | proposed defaults in use, not yet confirmed | as in plan Section 11 |
-| F11 | **proposed, awaiting the user** (device round 2026-11-16) | Chrome or Edge recommended; Firefox supported (60 fps with no CPU waits; read-backs ≈ 0.1 s); phone pending a second run |
+| F11 | **decided by the user** (2026-11-16, with F12) | any modern browser with WebGL2: Chrome, Edge, Firefox, Safari; phones included |
+| F12 | **decided by the user** (2026-11-16: "Switch to WebGL2"), added in plan v1.1 | WebGL2, as FOORT-GPU; WebGPU deferred behind a backend interface |
 
 ## G0 — repository, vendoring, WebGPU capability
 
@@ -44,3 +45,10 @@ float32 and GPU conventions carried over here.
 - 2026-11-16 — **Question reopened by the user:** "Do we really need WebGPU (vs what foort-gpu used)?" The plan's Section 3 (WebGPU-first, no WebGL2 fallback) is on hold until a WebGL2 frame-loop test has run on the laptop (Chrome, Firefox) and the phone (user: "Yes, test WebGL2"). Arguments: WebGL2 reuses FOORT-GPU's validated GLSL tracer (most of G1 disappears), runs on the phone, and has no 100 ms Firefox wait; it has no GPU timer queries in Firefox or on the phone, and fewer layout options (8 attachments, no storage buffers).
 - 2026-11-16 — **WebGL2 harness** (`js/gl/latencyGL.js`, run by `latency.html` after the WebGPU part, or alone when WebGPU is missing): the busy loop of the WebGPU test in a fragment shader writing 6 RGBA32F attachments; fences polled on MessageChannel yields (no 4 ms setTimeout clamp); chunk cost from (T(16) − T(4))/12 so the fence latency drops out; budget mode driven by fence lag and frame interval only, so it represents the devices without timer queries.
 - 2026-11-16 — **G0b device runs:** WebGL2 works on all three (laptop Chrome and Firefox, phone), at 60 fps on the laptop in both browsers with a fence-only budget; the phone has no WebGPU at all. Firefox's WebGL2 waits cost 5 ms (WebGPU: 101 ms). The phone ran at a flat 24 fps with 0 frames in flight, a display or power policy, not GPU load. Recommendation to the user: switch Stage 2A to WebGL2 (decision pending). The budget controller's interval rule (> 20 ms means overload) is wrong on displays below 60 Hz; overload is judged from frames in flight.
+
+### Plan v1.1: WebGL2 (2026-11-16)
+
+- 2026-11-16 — **F12: WebGL2 for Stage 2A** (user: "Switch to WebGL2"), after G0b. — Alternative: WebGPU-first (plan v1.0). — Reason: the phone has no WebGPU in any mode but runs WebGL2; Firefox's WebGPU costs 100 ms per wait; throughput is equal or better in WebGL2 on the laptop; FOORT-GPU's validated GLSL tracer runs unchanged. The plan is now v1.1 (Sections 1.2, 2, 3, 5, 6, 8, 9, 11; the copy in the user's Downloads is still v1.0).
+- 2026-11-16 — **F11: any modern browser with WebGL2**, phones included (follows from F12).
+- 2026-11-16 — **Landing page** checks WebGL2 (`js/gl/context.js`): float render targets, ≥ 6 draw buffers, highp fragment floats; otherwise an explanation with the FOORT-GPU link. `caps.html` and `latency.html` keep their WebGPU parts as a record of G0 and for a later WebGPU backend; `js/gpu/` stays for that reason.
+- 2026-11-16 — **G1 camera without shader edits (to verify in G1):** FOORT-GPU's `common.glsl` builds each ray as a pinhole projection, pflat = (−1, −r_c/D, −β/(r_c D), α/(r_c sin θ_c D)), mapped by the vielbein uniform `uE`. A general tetrad, a rotation and the r_c, r_c sin θ_c factors can all be folded into `uE`, so cube faces (90° square screens) and the ship's screen should need no change to the vendored GLSL.

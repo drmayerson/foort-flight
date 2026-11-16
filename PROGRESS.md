@@ -166,3 +166,9 @@ Summary of the pasted reports: `dev/reports/g0/user/g0b_summary.json`.
 - **Phone:** WebGL2 works, with the float targets and 8 draw buffers the 24-float record needs. Its GPU does the loop about 3–4.5× slower than the laptop's (405 vs 1229–1843 iterations per 1.5 ms).
 - **Phone frame rate:** as soon as any work was drawn, frames came every 41.8 ms exactly (24 Hz) for 2 and 8 chunks alike, with **0 frames in flight**: the GPU finished each frame's work well within the frame. So the 24 fps is not GPU load; it looks like the phone's display or power policy (a battery saver or adaptive refresh dropping to 24 Hz). The display-only loop ran at 60 fps median but with a p90 of 42 ms, as if switching.
 - **Controller fix needed:** the fence budget treated every 41.8 ms interval as overload and fell to 1 chunk although nothing was in flight. The scheduler must use frames in flight as its overload signal and take the frame interval relative to the device's own refresh, not 16.7 ms. To do in the real scheduler (G1).
+
+### Decision and CHECKPOINT G0 closed (2026-11-16)
+
+- **F12: WebGL2** (user: "Switch to WebGL2"); **F11:** any modern browser with WebGL2, phones included. The plan is now **v1.1** (`FLIGHT_STAGE2A_PLAN.md`): Section 3 rewritten for WebGL2 and fence-based scheduling; G1 is now "WebGL2 tracer integration" (the vendored GLSL tracer unchanged, camera through the vielbein) instead of a WGSL port.
+- **Landing page** now checks WebGL2 (float targets, 6 draw buffers, highp) and explains when it is missing. Tests: Vitest 8/8, Playwright 7/7, type check clean.
+- **Carried into G1:** the scheduler judges overload from frames in flight and the device's own refresh interval (the phone's 24 Hz showed why).
