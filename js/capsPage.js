@@ -41,20 +41,24 @@ export async function collectCaps() {
     webgpu: { available: false },
   };
   const g = await createGpu();
-  if (gpuFailed(g)) { report.webgpu = { available: false, kind: g.kind, reason: g.reason }; return report; }
+  if (gpuFailed(g)) { report.webgpu = { available: false, kind: g.kind, reason: g.reason, attempts: g.attempts }; return report; }
   const { adapter, device } = g;
   const names = limitNames(adapter.limits);
-  // the defaults: a device created without required limits
+  // the defaults: a device without required limits, from a second adapter (an adapter may create only one device:
+  // Firefox enforces this, so asking the first adapter again returned nothing)
   let defaults = {};
   try {
-    const d0 = await adapter.requestDevice();
+    const a0 = await nav.gpu.requestAdapter(g.featureLevel === 'compatibility' ? { featureLevel: 'compatibility' } : { powerPreference: 'high-performance' });
+    const d0 = await a0.requestDevice();
     defaults = pick(d0.limits, names);
     d0.destroy();
-  } catch { /* some adapters allow one device only */ }
+  } catch { /* reported as empty */ }
   report.webgpu = {
     available: true,
     info: adapterInfo(adapter),
     isFallbackAdapter: g.isFallbackAdapter,
+    featureLevel: g.featureLevel,
+    attempts: g.attempts,
     features: [...adapter.features].map(String).sort(),
     wgslLanguageFeatures: nav.gpu.wgslLanguageFeatures ? [...nav.gpu.wgslLanguageFeatures].sort() : [],
     preferredCanvasFormat: nav.gpu.getPreferredCanvasFormat(),
@@ -76,6 +80,7 @@ async function main() {
   /** @type {any} */ (window).__caps = r;
   const w = r.webgpu;
   let html = row('WebGPU', w.available, w.available ? Object.values(w.info).join(' / ') || 'adapter info hidden by the browser' : w.reason);
+  if (w.attempts) html += row('Adapter requests', w.available ? w.featureLevel === 'core' : false, w.attempts.join('; ') + (w.available && w.featureLevel === 'compatibility' ? ' — compatibility mode only (OpenGL ES level): fewer features' : ''));
   if (w.available) {
     const L = w.limits.device;
     html += row('Fallback (software) adapter', !w.isFallbackAdapter, w.isFallbackAdapter ? 'yes: very slow, for testing only' : 'no');

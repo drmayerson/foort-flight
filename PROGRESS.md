@@ -67,3 +67,48 @@ The plan asks the user to open `caps.html` and the latency test on their laptop 
 - **F11 (browser guidance)** waits for the Firefox and phone reports.
 - **Sky picture licences:** the credits come from FOORT-GPU; the exact source pages of the two Hubble files are not recorded yet (`CREDITS.md`, to be settled by G8).
 - The vendored ST3Cr bake and fluid modules are only import-tested so far; they are exercised from G1 on.
+
+## G0 device round (2026-11-16)
+
+G0 was merged to `main` and published (user: "Merge and push"). The user ran the published pages on the laptop
+(Firefox 160) and the phone (Samsung, Xclipse 920, Chrome 157). Reports: `dev/reports/g0/user/`. The laptop is also the
+machine Claude Code runs on, so the Chrome numbers above are the same laptop in Chrome.
+
+### Laptop: Firefox 160 vs Chrome 157
+
+| | Firefox 160 | Chrome 157 (headed) |
+|---|---|---|
+| adapter name | hidden by Firefox | amd / rdna-3 |
+| `timestamp-query`, `shader-f16` | yes, yes (compiles) | yes, yes |
+| storage binding / buffer | 2 GiB / 2 GiB, all raised limits granted | 2 GiB / 2 GiB |
+| hello compute | exact | exact |
+| CPU wait per submission (median) | **100 ms** (p10–p90 100–101; read-back 101 ms) | 8.2 ms |
+| 24 chunks, waited each / not waited | 2515 ms / 100 ms: **25× slower** | 198 / 49 ms: 4× |
+| busy chunk (same 1024 iterations) | 1.43 ms GPU | 1.81 ms GPU |
+| frame loop, display only | 59.9 fps, p90 16.7 ms | 59.9 fps, p90 16.8 ms |
+| frame loop, 8 chunks (≈ 10–16 ms GPU) | 59.9 fps, p90 16.7 ms, 484 chunks/s | 59.9 fps, p90 16.9 ms, 461 chunks/s |
+| budget 10 ms | settles at 7 chunks, 336 chunks/s, 59.9 fps | 6 chunks, 284 chunks/s |
+
+- **Firefox's wait is a fixed ≈ 100 ms** (the spread is 1 ms), like a polling interval, slightly worse than FOORT-GPU's M0 (75–100 ms). Any CPU wait in the frame loop would drop Firefox to 10 fps.
+- **Without waits Firefox is as good as Chrome**, even slightly faster per chunk on this GPU, with perfectly even frame pacing. Timestamp results arrive about 6 frames late (≈ 100 ms), and the budget scheduler still held 8.6 ms median, p90 10.0 ms against a 10 ms budget.
+- **Consequence for the design (confirms plan Section 3):** nothing in the per-frame path may wait on the GPU; read-backs (timestamps, the staleness metric, screenshots, the map's GPU data if any) are asynchronous and tolerate ≈ 100 ms delay in Firefox. The scheduler must work with GPU times that are several frames old.
+- Firefox gave the device its defaults for limits FOORT Flight did not ask to raise (e.g. 16 sampled textures per stage, 4 bind groups, 8192² textures, though the adapter offers 64, 8, 16384). G1 adds the limits it needs to `RAISED_LIMITS`.
+
+### Phone: Samsung (Xclipse 920), Chrome 157
+
+- **caps.html:** `navigator.gpu` exists, but the high-performance adapter request returned **no adapter**. As the plan expected, Chrome's Android WebGPU does not cover this GPU (it is documented for Qualcomm and ARM GPUs). WebGL2 is available, so FOORT-GPU still runs there.
+- **latency.html crashed** on that path: the page replaced its results table with the explanation, then wrote the results into the table that no longer existed. Fixed; an e2e test covers it.
+- **Retry added:** `createGpu` now asks for a high-performance core adapter, then any core adapter, then a **compatibility-mode** adapter (Chrome can offer WebGPU compatibility mode on OpenGL ES where core WebGPU is unavailable). Both pages report each request and its outcome. **The phone needs a second run of the two pages** once this fix is published.
+
+### Fixes in this round
+
+- `latency.html` without WebGPU: the explanation goes in its own box; the report and "Copy" still appear (e2e test).
+- Adapter request sequence core high-performance → core → compatibility, reported as `attempts`; `featureLevel` reported (e2e test with the core requests stubbed out).
+- `caps.html`'s "default" column was empty in Firefox: an adapter may create only one device (Firefox enforces it), so the defaults now come from a second adapter.
+- The latency page's frame loops are guarded: if they fail (e.g. compatibility mode without storage buffers in fragment shaders), the other results are still reported.
+
+Tests: Vitest 8/8, Playwright 6/6 (Chrome with WebGPU), type check clean.
+
+### F11 (browser guidance): proposal for the user
+
+Recommend **Chrome or Edge**, and **support Firefox** as a fully working browser (60 fps here, given the no-wait design), with a note that Firefox reacts more slowly to some actions that need a GPU read-back (≈ 0.1 s). The phone question stays open until the second phone run.

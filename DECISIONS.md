@@ -11,7 +11,7 @@ float32 and GPU conventions carried over here.
 |---|---|---|
 | F1 | **decided by the user** (2026-11-16: "Work inside the empty repo foort-flight") | repository `drmayerson/foort-flight`, local clone `Dropbox/Github.io/foort-flight` next to `foort-gpu` |
 | F2–F10 | proposed defaults in use, not yet confirmed | as in plan Section 11 |
-| F11 | **open: decided at CHECKPOINT G0** from the user's device reports | — |
+| F11 | **proposed, awaiting the user** (device round 2026-11-16) | Chrome or Edge recommended; Firefox supported (60 fps with no CPU waits; read-backs ≈ 0.1 s); phone pending a second run |
 
 ## G0 — repository, vendoring, WebGPU capability
 
@@ -30,3 +30,11 @@ float32 and GPU conventions carried over here.
 - 2026-11-16 — **Latency harness** (`latency.html`, `js/gpu/latency.js`). The workload is a synthetic f32 loop (a smooth nonlinear map, ray-tracer-like ALU load), not the Kerr tracer: G0 measures the platform (submission and wait costs, frame pacing), not the tracer, which is G1's job. Chunks are calibrated to ≈ 2 ms of GPU time each by timestamp queries (or wall time). The budget mode is a first version of the plan 5.4 scheduler: +1 chunk while the GPU frame time is < 80% of the budget, ×0.8 above it.
 - 2026-11-16 — **Dev tooling** as in FOORT-GPU: `dev/` with Vitest, Playwright (installed Chrome, `--enable-unsafe-webgpu`), `tsc --checkJs` with `@webgpu/types`; the Node static server `dev/scripts/serve.mjs` (copied from FOORT-GPU) on port 8766 (FOORT-GPU's tests use 8765). `createGpu` returns a union discriminated by `ok`, with a type guard `gpuFailed` (the type check runs non-strict, where boolean literals do not narrow).
 - 2026-11-16 — **First finding (this development machine, Chrome 157 headless and headed, AMD RDNA 3 iGPU):** a CPU wait for one submission costs ≈ 8 ms (onSubmittedWorkDone and a 16-byte mapAsync alike), so waiting per 2 ms chunk is 4× slower than submitting without waiting. The plan's "never wait on the CPU per chunk" therefore applies to Chrome too, not only to Firefox. Details in `PROGRESS.md`.
+
+### G0 device round (2026-11-16)
+
+- 2026-11-16 — **G0 merged to `main` and pushed** (user: "Merge and push"); GitHub Pages serves it at `drmayerson.github.io/foort-flight/`. `g0-scaffold` is pushed too. Fixes of this round are committed on `g0-scaffold` and need another merge to reach the phone.
+- 2026-11-16 — **Firefox's CPU wait is ≈ 100 ms per submission on the laptop (Firefox 160), Chrome's 8 ms.** The no-wait frame loop runs at 60 fps in both. Rule for all later milestones: no GPU wait or synchronous read-back in the per-frame path; every read-back is asynchronous and may arrive ≈ 6 frames late in Firefox; the scheduler uses timestamps that are several frames old.
+- 2026-11-16 — **Adapter request sequence:** core high-performance → core default → `featureLevel: 'compatibility'`. Reason: the phone (Xclipse 920, Chrome 157) returned no core adapter; Chrome can expose compatibility mode on OpenGL ES devices. A compatibility adapter is recognised by the absence of `core-features-and-limits`, reported as `featureLevel`. Whether the game can run in compatibility mode at all (storage buffers in fragment shaders, texture limits) is decided after the phone's second run.
+- 2026-11-16 — **Bug fix:** `latency.html` crashed when no adapter was found (the explanation replaced the results table that the report then wrote into). The explanation now has its own box.
+- 2026-11-16 — **`caps.html` default limits** come from a second adapter: an adapter may create only one device, and Firefox enforces it (its "default" column was empty).

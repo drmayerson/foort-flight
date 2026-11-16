@@ -16,7 +16,7 @@ const status = (s) => { $('status').textContent = s; };
 function table(r) {
   const rows = [];
   const tr = (/** @type {string} */ a, /** @type {string} */ b, cls = '') => rows.push(`<tr><th>${a}</th><td class="${cls}">${b}</td></tr>`);
-  tr('GPU', r.gpu);
+  if (r.gpu) tr('GPU', r.gpu + (r.featureLevel === 'compatibility' ? ' (WebGPU compatibility mode)' : ''));
   if (r.hello) tr('Hello compute', r.hello.ok ? `correct (${r.hello.n} values)` : `${r.hello.bad} wrong values, first at ${r.hello.firstBad}`, r.hello.ok ? 'ok' : 'bad');
   if (r.wait) {
     tr('CPU wait per submission', `onSubmittedWorkDone: median ${f(r.wait.onSubmittedWorkDone.median, 2)} ms (p90 ${f(r.wait.onSubmittedWorkDone.p90, 2)});
@@ -35,6 +35,7 @@ function table(r) {
     tr(name, `${f(fl.fps)} fps (frame p90 ${f(fl.frameMs.p90)} ms)${gpu}, ${f(fl.chunksPerSecond, 0)} chunks/s${s.mode === 'budget' ? `, settled at ${fl.finalChunks} chunks` : ''}`,
       fl.fps > 50 ? 'ok' : '');
   }
+  if (r.framesError) tr('Frame loops', `failed: ${r.framesError}`, 'bad');
   if (r.error) tr('Error', r.error, 'bad');
   $('results').innerHTML = rows.join('');
 }
@@ -48,7 +49,8 @@ async function run() {
     status('opening WebGPU…');
     const g = await createGpu();
     if (gpuFailed(g)) {
-      $('results').outerHTML = `<div class="card">${noWebGPUMessage(g)}</div>`;
+      $('nogpu').innerHTML = `<div class="card">${noWebGPUMessage(g)}</div>`;
+      r.attempts = g.attempts;
       r.error = g.reason;
       return r;
     }
@@ -57,6 +59,8 @@ async function run() {
     device.lost.then((e) => { lost = e.message; });
     const ts = g.features.has('timestamp-query');
     r.gpu = Object.values(g.info).join(' / ') || 'hidden by the browser';
+    r.featureLevel = g.featureLevel;
+    r.attempts = g.attempts;
     r.timestampQuery = ts;
     status('hello compute…');
     r.hello = await helloCompute(device);
@@ -68,9 +72,14 @@ async function run() {
     r.chunks = await chunkedVsBatched(device, { timestamps: ts });
     table(r);
     status('frame loops…');
-    r.frames = await frameLoop(device, /** @type {HTMLCanvasElement} */ ($('canvas')), {
-      timestamps: ts, iters: r.chunks.iters, durationMs: q.has('quick') ? 800 : 2500,
-    });
+    try {
+      r.frames = await frameLoop(device, /** @type {HTMLCanvasElement} */ ($('canvas')), {
+        timestamps: ts, iters: r.chunks.iters, durationMs: q.has('quick') ? 800 : 2500,
+      });
+    } catch (e) {
+      // e.g. compatibility mode without storage buffers in fragment shaders: keep the other results
+      r.framesError = String(e);
+    }
     if (lost) r.error = `device lost: ${lost}`;
     device.destroy();
     status('done');

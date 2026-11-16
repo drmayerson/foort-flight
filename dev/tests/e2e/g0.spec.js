@@ -35,3 +35,30 @@ test('latency.html: hello compute is correct and the measurements complete', asy
   expect(r.frames.length).toBe(4);
   console.log(JSON.stringify(r));
 });
+
+test('latency.html without WebGPU still finishes with a report (G0 phone bug)', async ({ page }) => {
+  await page.addInitScript(() => {
+    const gpu = /** @type {any} */ (navigator).gpu;
+    gpu.requestAdapter = async () => null;
+  });
+  await page.goto('./latency.html?auto=1&quick=1');
+  await expect(page.locator('body')).toHaveAttribute('data-done', 'error', { timeout: 30_000 });
+  await expect(page.locator('#nogpu')).toContainText('needs WebGPU');
+  const r = await page.evaluate(() => /** @type {any} */ (window).__latency);
+  expect(r.attempts).toHaveLength(3);
+  await expect(page.locator('#json')).toContainText('no graphics adapter');
+});
+
+test('without a core adapter, the compatibility-mode adapter is used', async ({ page }) => {
+  await page.addInitScript(() => {
+    const gpu = /** @type {any} */ (navigator).gpu;
+    const orig = gpu.requestAdapter.bind(gpu);
+    gpu.requestAdapter = async (/** @type {any} */ o) => (o?.featureLevel === 'compatibility' ? orig(o) : null);
+  });
+  await page.goto('./caps.html');
+  await expect(page.locator('body')).toHaveAttribute('data-done', '1', { timeout: 30_000 });
+  const caps = await page.evaluate(() => /** @type {any} */ (window).__caps);
+  expect(caps.webgpu.available).toBe(true);
+  expect(caps.webgpu.attempts.at(-1)).toBe('compatibility: adapter');
+  console.log('compat:', caps.webgpu.featureLevel, caps.webgpu.limits.device.maxStorageBuffersInFragmentStage);
+});
