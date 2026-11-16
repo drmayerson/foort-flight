@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FOORT Flight capabilities</title>
+<link rel="stylesheet" href="./style.css">
+</head>
+<body>
+<main>
+  <h1>FOORT Flight — WebGPU capabilities</h1>
+  <p class="muted">What this browser and GPU offer FOORT Flight. <a href="./">Home</a> · <a href="./latency.html">Latency test</a></p>
+
+  <section>
+    <h2>This device</h2>
+    <div class="scroll"><table id="summary"><tr><td>checking…</td></tr></table></div>
+  </section>
+  <section>
+    <h2>Limits</h2>
+    <p class="muted">Adapter maximum, the WebGPU default, and what the device got after FOORT Flight asked for the maximum.</p>
+    <div class="scroll"><table id="limits"></table></div>
+  </section>
+  <section>
+    <h2>Report</h2>
+    <div class="row"><button id="copy" disabled>Copy report (JSON)</button><span id="copied" class="muted"></span></div>
+    <pre id="json"></pre>
+  </section>
+</main>
+<script type="module" src="./js/capsPage.js"></script>
+</body>
+</html>

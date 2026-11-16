@@ -1,0 +1,8 @@
+dev/node_modules/
+dev/test-results/
+dev/playwright-report/
+dev/blob-report/
+dev/package-lock.json
+# image and video reports are not committed; small JSON/markdown summaries in dev/reports/ are
+dev/reports/img/
+private/

@@ -1,0 +1,32 @@
+# FOORT Flight decisions
+
+Format: date — decision — alternatives — reason. Plan-level open decisions F1–F11 are in `FLIGHT_STAGE2A_PLAN.md`
+Section 11; this file records their status and every non-trivial implementation choice. FOORT-GPU's own decision log
+(`vendor/foort-gpu` is a snapshot of that repository; the log itself is in the FOORT-GPU repository) explains the
+float32 and GPU conventions carried over here.
+
+## Plan decisions (F1–F11)
+
+| ID | status | value |
+|---|---|---|
+| F1 | **decided by the user** (2026-11-16: "Work inside the empty repo foort-flight") | repository `drmayerson/foort-flight`, local clone `Dropbox/Github.io/foort-flight` next to `foort-gpu` |
+| F2–F10 | proposed defaults in use, not yet confirmed | as in plan Section 11 |
+| F11 | **open: decided at CHECKPOINT G0** from the user's device reports | — |
+
+## G0 — repository, vendoring, WebGPU capability
+
+- 2026-11-16 — **Branches.** Work is on `g0-scaffold`; `main` stays empty until the user approves checkpoint G0 (plan Section 0: merge to `main` only at approved checkpoints). Nothing is pushed without the user's go-ahead.
+- 2026-11-16 — **Vendoring from a commit, not the working tree.** `tools/sync_foort_gpu.sh [src] [commit]` uses `git archive`, so uncommitted FOORT-GPU work (there was some on 2026-11-16) is never vendored. The snapshot is FOORT-GPU `7896677` (2026-11-16 20:32), recorded in `vendor/foort-gpu/VERSION`. The script keeps the hand-written `vendor/foort-gpu/README.md` and prints the changed files.
+- 2026-11-16 — **What is vendored, beyond the plan's table** (Section 2):
+  - all of `js/metrics/`, not only Kerr and ST3Cr: `registry.js` imports every metric, and the plan forbids editing vendored files;
+  - `js/gpu/traceConfig.js` and `js/gpu/tiers.js`: `js/ref/inspectWorker.js` imports `traceConfig.js`, and `tiers.js` holds the quality-tier settings the plan asks to carry over;
+  - `js/sky.js`: the sky picture list with its credits;
+  - the M0 WebGPU benchmark (`bench/kerrBench.wgsl` and its three JS files): FOORT-GPU's only WGSL so far, a starting point for the G1 port.
+  - Not vendored: the placeholder noise field, `fits.js`, the WebGL2 backend, UI and tests.
+- 2026-11-16 — **Data stays under `vendor/`.** The plan's layout lists top-level `noise/` and `sky/` folders "(vendored data, or symlinks)". Copies would double the repository's 34 MB, and symlinks are unreliable on Windows/Dropbox and on GitHub Pages; the game loads `vendor/foort-gpu/noise/…` and `vendor/foort-gpu/sky/…` directly.
+- 2026-11-16 — **Relative paths kept.** The vendored files keep FOORT-GPU's relative layout (`vendor/foort-gpu/js/…`, `…/shaders/glsl/…`), so their relative imports work unchanged in the browser and in Node (the unit tests import the registry, units and camera from there).
+- 2026-11-16 — **WebGPU device** (`js/gpu/device.js`): high-performance adapter; the limits of plan Section 3 (storage-binding and buffer size, invocations and workgroup sizes, storage buffers/textures per stage, colour attachments) are requested at the adapter's maximum, and if `requestDevice` rejects them it is retried with the defaults (the page reports which were refused). Optional features `timestamp-query`, `shader-f16`, `float32-filterable` are enabled when offered. A failure returns `{ok: false, kind, reason}`; `noWebGPUMessage` turns it into the explanation page with a link to the FOORT-GPU viewer (plan Section 3).
+- 2026-11-16 — **GPU timing without stalls** (`js/gpu/timing.js`, `GpuTimer`): a ring of 4 timestamp query sets, resolved at the end of the frame's encoder and mapped asynchronously; when all 4 are still mapping, the frame is not timed (counted as dropped) rather than waited for. Without `timestamp-query` the scheduler falls back to the frame interval.
+- 2026-11-16 — **Latency harness** (`latency.html`, `js/gpu/latency.js`). The workload is a synthetic f32 loop (a smooth nonlinear map, ray-tracer-like ALU load), not the Kerr tracer: G0 measures the platform (submission and wait costs, frame pacing), not the tracer, which is G1's job. Chunks are calibrated to ≈ 2 ms of GPU time each by timestamp queries (or wall time). The budget mode is a first version of the plan 5.4 scheduler: +1 chunk while the GPU frame time is < 80% of the budget, ×0.8 above it.
+- 2026-11-16 — **Dev tooling** as in FOORT-GPU: `dev/` with Vitest, Playwright (installed Chrome, `--enable-unsafe-webgpu`), `tsc --checkJs` with `@webgpu/types`; the Node static server `dev/scripts/serve.mjs` (copied from FOORT-GPU) on port 8766 (FOORT-GPU's tests use 8765). `createGpu` returns a union discriminated by `ok`, with a type guard `gpuFailed` (the type check runs non-strict, where boolean literals do not narrow).
+- 2026-11-16 — **First finding (this development machine, Chrome 157 headless and headed, AMD RDNA 3 iGPU):** a CPU wait for one submission costs ≈ 8 ms (onSubmittedWorkDone and a 16-byte mapAsync alike), so waiting per 2 ms chunk is 4× slower than submitting without waiting. The plan's "never wait on the CPU per chunk" therefore applies to Chrome too, not only to Firefox. Details in `PROGRESS.md`.

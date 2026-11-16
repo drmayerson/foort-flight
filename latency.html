@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FOORT Flight latency</title>
+<link rel="stylesheet" href="./style.css">
+</head>
+<body>
+<main>
+  <h1>FOORT Flight — WebGPU latency test</h1>
+  <p class="muted"><a href="./">Home</a> · <a href="./caps.html">Capabilities</a></p>
+  <p>This page measures what a real-time ray tracer needs from WebGPU on this device: whether compute shaders work,
+    how long the CPU waits for each GPU submission, and how much work fits in a 60 fps frame when the CPU never waits.
+    It takes about 20 seconds. Keep this tab in front while it runs.</p>
+  <div class="row"><button id="run">Run the test</button><span id="status" class="muted"></span></div>
+  <canvas id="canvas" class="preview" width="256" height="256"></canvas>
+
+  <section>
+    <h2>Results</h2>
+    <div class="scroll"><table id="results"><tr><td class="muted">not run yet</td></tr></table></div>
+  </section>
+  <section>
+    <h2>Report</h2>
+    <div class="row"><button id="copy" disabled>Copy report (JSON)</button><span id="copied" class="muted"></span></div>
+    <pre id="json"></pre>
+  </section>
+</main>
+<script type="module" src="./js/latencyPage.js"></script>
+</body>
+</html>

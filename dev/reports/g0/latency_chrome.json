@@ -1,0 +1,202 @@
+{
+ "page": "foort-flight latency",
+ "date": "2026-11-16T19:42:37.491Z",
+ "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/157.0.0.0 Safari/537.36",
+ "gpu": "amd / rdna-3",
+ "timestampQuery": true,
+ "hello": {
+  "ok": true,
+  "n": 1048576,
+  "bad": 0,
+  "firstBad": -1
+ },
+ "wait": {
+  "onSubmittedWorkDone": {
+   "n": 30,
+   "median": 8.15,
+   "p10": 4.91,
+   "p90": 8.51,
+   "min": 1.2,
+   "max": 9.1,
+   "mean": 7.47
+  },
+  "mapAsync16B": {
+   "n": 30,
+   "median": 8.25,
+   "p10": 7.78,
+   "p90": 9.32,
+   "min": 4.9,
+   "max": 11,
+   "mean": 8.303
+  }
+ },
+ "chunks": {
+  "chunks": 24,
+  "rays": 65536,
+  "iters": 1024,
+  "chunkGpuMs": 1.805,
+  "timedBy": "timestamp-query",
+  "wallMs": {
+   "waitEach": 198,
+   "submitEach": 48.8,
+   "oneSubmit": 40.3
+  },
+  "gpuBoundMs": 43.31,
+  "waitCostPerChunkMs": 6.217,
+  "waitedSlowdown": 4.057
+ },
+ "frames": [
+  {
+   "setting": {
+    "mode": "fixed",
+    "chunks": 0
+   },
+   "frames": 127,
+   "fps": 59.52,
+   "frameMs": {
+    "n": 122,
+    "median": 16.8,
+    "p10": 16.6,
+    "p90": 25,
+    "min": 15.5,
+    "max": 26,
+    "mean": 19.88
+   },
+   "gpuFrameMs": {
+    "n": 123,
+    "median": 0.06588,
+    "p10": 0.05989,
+    "p90": 0.09707,
+    "min": 0.0536,
+    "max": 0.1162,
+    "mean": 0.07009
+   },
+   "cpuSubmitMs": {
+    "n": 128,
+    "median": 0.2,
+    "p10": 0.2,
+    "p90": 0.3,
+    "min": 0.1,
+    "max": 0.5,
+    "mean": 0.25
+   },
+   "chunksPerSecond": 0,
+   "finalChunks": 0,
+   "timerDroppedFrames": 0
+  },
+  {
+   "setting": {
+    "mode": "fixed",
+    "chunks": 2
+   },
+   "frames": 129,
+   "fps": 59.52,
+   "frameMs": {
+    "n": 124,
+    "median": 16.8,
+    "p10": 16.6,
+    "p90": 25,
+    "min": 16.1,
+    "max": 25.6,
+    "mean": 19.62
+   },
+   "gpuFrameMs": {
+    "n": 125,
+    "median": 3.627,
+    "p10": 3.624,
+    "p90": 3.63,
+    "min": 3.622,
+    "max": 5.564,
+    "mean": 3.671
+   },
+   "cpuSubmitMs": {
+    "n": 130,
+    "median": 0.3,
+    "p10": 0.2,
+    "p90": 0.4,
+    "min": 0.1,
+    "max": 0.7,
+    "mean": 0.2946
+   },
+   "chunksPerSecond": 102.6,
+   "finalChunks": 2,
+   "timerDroppedFrames": 0
+  },
+  {
+   "setting": {
+    "mode": "fixed",
+    "chunks": 8
+   },
+   "frames": 116,
+   "fps": 46.3,
+   "frameMs": {
+    "n": 111,
+    "median": 21.6,
+    "p10": 17.6,
+    "p90": 25.1,
+    "min": 16.6,
+    "max": 25.3,
+    "mean": 21.53
+   },
+   "gpuFrameMs": {
+    "n": 112,
+    "median": 14.47,
+    "p10": 14.01,
+    "p90": 15.93,
+    "min": 10.41,
+    "max": 17.53,
+    "mean": 14.64
+   },
+   "cpuSubmitMs": {
+    "n": 117,
+    "median": 0.4,
+    "p10": 0.2,
+    "p90": 0.8,
+    "min": 0.1,
+    "max": 1,
+    "mean": 0.4786
+   },
+   "chunksPerSecond": 375.3,
+   "finalChunks": 8,
+   "timerDroppedFrames": 0
+  },
+  {
+   "setting": {
+    "mode": "budget",
+    "budgetMs": 10
+   },
+   "frames": 126,
+   "fps": 58.14,
+   "frameMs": {
+    "n": 121,
+    "median": 17.2,
+    "p10": 16.6,
+    "p90": 25,
+    "min": 16.2,
+    "max": 25.4,
+    "mean": 19.91
+   },
+   "gpuFrameMs": {
+    "n": 122,
+    "median": 9.049,
+    "p10": 9.043,
+    "p90": 9.059,
+    "min": 7.238,
+    "max": 13.31,
+    "mean": 9.049
+   },
+   "cpuSubmitMs": {
+    "n": 127,
+    "median": 0.6,
+    "p10": 0.5,
+    "p90": 0.8,
+    "min": 0.4,
+    "max": 1.1,
+    "mean": 0.6331
+   },
+   "chunksPerSecond": 246.7,
+   "finalChunks": 5,
+   "timerDroppedFrames": 0
+  }
+ ]
+}
