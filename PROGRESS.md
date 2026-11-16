@@ -147,3 +147,22 @@ fragment shader into 6 RGBA32F attachments (the 24-float record), 256² rays per
   that WebGL2 is not slower here.
 - The fence-based budget holds 60 fps without any GPU timing.
 - **Still needed:** the same page in Firefox on the laptop, and on the phone (where only the WebGL2 part runs).
+
+### G0b device runs (user, 2026-11-16)
+
+Summary of the pasted reports: `dev/reports/g0/user/g0b_summary.json`.
+
+| | laptop Firefox WebGPU | laptop Firefox WebGL2 | laptop Chrome WebGL2 | phone Chrome WebGL2 |
+|---|---|---|---|---|
+| works | yes | yes | yes | **yes** (WebGPU: no adapter) |
+| timer queries | timestamps | **no** | yes | **no** |
+| CPU wait | 101 ms | fence 5 ms, readPixels 2 ms | 2.0 / 1.2 ms | 2.5 / 1.3 ms |
+| waiting per chunk | 25× slower | 2.5× | 1.6× | 1.7× |
+| ≈ 1.5 ms chunk | 1024 iterations | 1229 | 1843 | 405 |
+| 8 chunks per frame | 60 fps | 60 fps (≈ 12.8 ms GPU) | 60 fps | 24 fps, flat 41.8 ms |
+| budget mode | 6 chunks, 336 chunks/s | fences: 10 chunks, 432 chunks/s, 60 fps | 6 chunks, 60 fps | 1 chunk (see below) |
+
+- **Laptop, Firefox:** WebGL2 is at least as good as WebGPU: 60 fps in every loop, and the fence-driven budget took more work per second (432 vs 336 chunks/s; the WebGPU budget was capped at 10 ms) with no GPU timing at all. A wait costs 5 ms instead of 101 ms.
+- **Phone:** WebGL2 works, with the float targets and 8 draw buffers the 24-float record needs. Its GPU does the loop about 3–4.5× slower than the laptop's (405 vs 1229–1843 iterations per 1.5 ms).
+- **Phone frame rate:** as soon as any work was drawn, frames came every 41.8 ms exactly (24 Hz) for 2 and 8 chunks alike, with **0 frames in flight**: the GPU finished each frame's work well within the frame. So the 24 fps is not GPU load; it looks like the phone's display or power policy (a battery saver or adaptive refresh dropping to 24 Hz). The display-only loop ran at 60 fps median but with a p90 of 42 ms, as if switching.
+- **Controller fix needed:** the fence budget treated every 41.8 ms interval as overload and fell to 1 chunk although nothing was in flight. The scheduler must use frames in flight as its overload signal and take the frame interval relative to the device's own refresh, not 16.7 ms. To do in the real scheduler (G1).

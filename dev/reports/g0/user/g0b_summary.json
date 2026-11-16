@@ -1,0 +1,16 @@
+{
+ "note": "Key numbers of the user's G0b latency reports (2026-11-16, latency.html with the WebGL2 part), transcribed from the pasted JSON; PROGRESS.md G0b.",
+ "firefox160_laptop": {
+  "webgpu": { "waitMs": 101, "readbackMs": 101, "chunkGpuMs": 1.424, "iters": 1024, "waitedSlowdown": 24.89,
+   "frames": [["fixed 0", 59.88, 16.7, 0.10], ["fixed 2", 59.88, 16.7, 2.91], ["fixed 8", 59.88, 16.7, 10.4], ["budget 10 ms", 59.88, 16.7, 8.58, "6 chunks", "335.6 chunks/s"]] },
+  "webgl2": { "renderer": "ANGLE (AMD, Radeon R9 200 Series Direct3D11 vs_5_0 ps_5_0), or similar", "timerQueries": false, "maxDrawBuffers": 8,
+   "hello": "ok", "fenceMs": 5, "readPixelsMs": 2, "chunkMs": 1.583, "iters": 1229, "waitedSlowdown": 2.52,
+   "frames": [["fixed 0", 59.88, "p90 16.7", "max 66.7"], ["fixed 2", 59.88, "p90 16.7", "est GPU 3.2"], ["fixed 8", 59.88, "p90 16.7", "est GPU 12.8"], ["fence", 59.88, "p90 16.7", "est GPU 11.4", "10 chunks", "432.2 chunks/s", "in flight p90 1, max 3"]] }
+ },
+ "phone_xclipse920_chrome157": {
+  "webgpu": "no adapter (core high-performance, core, compatibility)",
+  "webgl2": { "renderer": "ANGLE (Samsung Xclipse 920 on Vulkan 1.3.279), OpenGL ES 3.2", "timerQueries": false, "maxDrawBuffers": 8, "maxTextureSize": 8192,
+   "hello": "ok", "fenceMs": 2.5, "readPixelsMs": 1.3, "chunkMs": 1.533, "iters": 405, "waitedSlowdown": 1.75,
+   "frames": [["fixed 0", "fps 59.88 median", "p90 42.2", "mean 27.3 ms"], ["fixed 2", 23.92, "41.8 ms flat", "est GPU 3.1", "0 frames in flight"], ["fixed 8", 23.92, "41.8 ms flat", "est GPU 12.5", "0 frames in flight"], ["fence", 23.92, "41.8 ms flat", "settled at 1 chunk (interval > 20 ms rule)", "0 frames in flight"]] }
+ }
+}
