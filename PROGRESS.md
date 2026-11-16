@@ -120,3 +120,30 @@ return **no adapter**. Chrome 157 on this phone exposes `navigator.gpu` but no W
 compatibility mode. FOORT Flight cannot run there; the phone gets the explanation page with the link to FOORT-GPU
 (WebGL2 works). Possible later check, not for players: Chrome's `chrome://flags/#enable-unsafe-webgpu` would show whether
 it is a blocklist or missing support.
+
+## G0b — WebGL2 alternative (2026-11-16)
+
+The user asked whether Stage 2A needs WebGPU at all (the phone has none; FOORT-GPU uses WebGL2). `latency.html` now
+runs the same measurements with WebGL2 as well (`js/gl/latencyGL.js`), also when WebGPU is missing: rays traced in a
+fragment shader into 6 RGBA32F attachments (the 24-float record), 256² rays per chunk, the same synthetic loop.
+
+- **Waiting** uses a fence polled on event-loop yields (never blocking), plus a 1-pixel `readPixels` for comparison.
+- **Budget mode without timer queries** (the case for Firefox and the phone): each frame ends with a fence. With 2 or
+  more frames in flight, or a frame interval over 20 ms, the chunk count drops by 20%; with at most 1 in flight and
+  intervals under 18 ms for 4 frames, it grows by 1. Timer queries, where they exist, only measure.
+
+**This laptop, Chrome 157, headed** (`dev/reports/g0/headed/latency_chrome.json`):
+
+| | WebGL2 | WebGPU (same run) |
+|---|---|---|
+| CPU wait per submission | fence 2.0 ms, readPixels 1.2 ms | 8.5 ms |
+| waiting per chunk | 1.6× slower (1.4 ms per wait) | 4.1× slower |
+| chunk of ≈ 1.7 ms | 1843 iterations | 1024 iterations |
+| 8 chunks/frame | 59.9 fps, p90 17.2 ms, GPU 11.4 ms (timer) | 59.9 fps, GPU 15.9 ms |
+| budget | fences: 60.2 fps, settles at 6 chunks, GPU 12.2 ms, ≤ 1 frame in flight | timestamps 10 ms: 6 chunks |
+
+- The synthetic loop runs about **2× more iterations per ms in WebGL2** than in WebGPU on this GPU (ANGLE/D3D11 vs
+  Dawn/D3D12). FOORT-GPU's M0 found the real Kerr tracer equal in both; this loop is not the tracer, so it only says
+  that WebGL2 is not slower here.
+- The fence-based budget holds 60 fps without any GPU timing.
+- **Still needed:** the same page in Firefox on the laptop, and on the phone (where only the WebGL2 part runs).

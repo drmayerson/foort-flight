@@ -28,24 +28,31 @@ test('latency.html: hello compute is correct and the measurements complete', asy
   await page.goto('./latency.html?auto=1&quick=1');
   await expect(page.locator('body')).toHaveAttribute('data-done', /.+/, { timeout: 100_000 });
   const r = await page.evaluate(() => /** @type {any} */ (window).__latency);
-  expect(r.error).toBeUndefined();
+  expect(r.webgpuError).toBeUndefined();
   expect(r.hello.ok).toBe(true);
   expect(r.wait.onSubmittedWorkDone.median).toBeGreaterThan(0);
   expect(r.chunks.chunkGpuMs).toBeGreaterThan(0);
   expect(r.frames.length).toBe(4);
+  // WebGL2 part
+  expect(r.webgl2.error).toBeUndefined();
+  expect(r.webgl2.hello.ok).toBe(true);
+  expect(r.webgl2.chunks.chunkMs).toBeGreaterThan(0);
+  expect(r.webgl2.frames.length).toBe(4);
   console.log(JSON.stringify(r));
 });
 
-test('latency.html without WebGPU still finishes with a report (G0 phone bug)', async ({ page }) => {
+test('latency.html without WebGPU still finishes, with the WebGL2 part (G0 phone bug)', async ({ page }) => {
   await page.addInitScript(() => {
     const gpu = /** @type {any} */ (navigator).gpu;
     gpu.requestAdapter = async () => null;
   });
   await page.goto('./latency.html?auto=1&quick=1');
-  await expect(page.locator('body')).toHaveAttribute('data-done', 'error', { timeout: 30_000 });
+  await expect(page.locator('body')).toHaveAttribute('data-done', '1', { timeout: 60_000 });
   await expect(page.locator('#nogpu')).toContainText('needs WebGPU');
   const r = await page.evaluate(() => /** @type {any} */ (window).__latency);
   expect(r.attempts).toHaveLength(3);
+  expect(r.webgl2.hello.ok).toBe(true);
+  expect(r.webgl2.frames.length).toBe(4);
   await expect(page.locator('#json')).toContainText('no graphics adapter');
 });
 

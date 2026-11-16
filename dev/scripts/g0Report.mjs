@@ -20,7 +20,8 @@ try {
   await page.waitForSelector('body[data-done]', { timeout: 120_000 });
   const lat = await page.evaluate(() => window.__latency);
   writeFileSync(`${out}/latency_${channel}.json`, JSON.stringify(lat, null, 1));
-  console.log(JSON.stringify({ gpu: lat.gpu, wait: lat.wait.onSubmittedWorkDone.median, chunks: lat.chunks, frames: lat.frames.map((f) => [f.setting, f.fps, f.gpuFrameMs?.median, f.chunksPerSecond]) }, null, 1));
+  const g = lat.webgl2;
+  console.log(JSON.stringify({ gpu: lat.gpu, wait: lat.wait?.onSubmittedWorkDone.median, chunks: lat.chunks?.wallMs, gl: { info: g.info, wait: g.wait?.fencePolled.median, readPx: g.wait?.readPixels1px.median, chunks: g.chunks, frames: g.frames?.map((f) => [f.setting, f.fps, f.frameMs.p90, f.gpuFrameMs?.median, f.estGpuFrameMs, f.chunksPerSecond, f.finalChunks, f.framesInFlight.median]), error: g.error } }));
 } finally {
   await browser.close();
   server.kill();
