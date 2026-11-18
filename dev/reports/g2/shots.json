@@ -1,0 +1,233 @@
+{
+ "zamo_kerr": {
+  "state": {
+   "spacetime": "kerr",
+   "a": 0.9,
+   "kind": "zamo",
+   "r": 12,
+   "theta": 80,
+   "v": 0
+  },
+  "trace": {
+   "wallMs": 490.30000001192093,
+   "frames": 8,
+   "program": "trace_kerr_analytic+bs3"
+  },
+  "position": [
+   0,
+   12,
+   1.3962634015954636,
+   0
+  ],
+  "centreShift": 1.095327618607319,
+  "shift": {
+   "min": 1.0880316495895386,
+   "median": 1.0953468084335327,
+   "max": 1.1027220487594604
+  }
+ },
+ "static_kerr_r4": {
+  "state": {
+   "spacetime": "kerr",
+   "a": 0.9,
+   "kind": "static",
+   "r": 4,
+   "theta": 80,
+   "v": 0,
+   "yaw": 180
+  },
+  "trace": {
+   "wallMs": 33.39999997615814,
+   "frames": 2,
+   "program": "trace_kerr_analytic+bs3"
+  },
+  "position": [
+   4.440892098500626e-16,
+   3.9999999999999996,
+   1.3962634015954636,
+   0
+  ],
+  "centreShift": 1.4131370682670357,
+  "shift": {
+   "min": 1.4131369590759277,
+   "median": 1.4131370782852173,
+   "max": 1.4131371974945068
+  }
+ },
+ "boost_g2": {
+  "state": {
+   "spacetime": "kerr",
+   "a": 0.9,
+   "kind": "zamo",
+   "r": 12,
+   "theta": 80,
+   "v": 0.8660254037844386,
+   "dir": "prograde",
+   "yaw": 90,
+   "fov": 90
+  },
+  "trace": {
+   "wallMs": 16.600000023841858,
+   "frames": 1,
+   "program": "trace_kerr_analytic+bs3"
+  },
+  "position": [
+   0,
+   12,
+   1.3962634015954636,
+   0
+  ],
+  "centreShift": 4.143497461334703,
+  "shift": {
+   "min": 1.0888025760650635,
+   "median": 1.6894199848175049,
+   "max": 4.143310070037842
+  }
+ },
+ "boost_g5": {
+  "state": {
+   "spacetime": "kerr",
+   "a": 0.9,
+   "kind": "zamo",
+   "r": 12,
+   "theta": 80,
+   "v": 0.9797958971132712,
+   "dir": "prograde",
+   "yaw": 90,
+   "fov": 90
+  },
+  "trace": {
+   "wallMs": 33.39999997615814,
+   "frames": 2,
+   "program": "trace_kerr_analytic+bs3"
+  },
+  "position": [
+   0,
+   12,
+   1.3962634015954636,
+   0
+  ],
+  "centreShift": 10.990310023023614,
+  "shift": {
+   "min": 0.49932238459587097,
+   "median": 0.9252305030822754,
+   "max": 10.986589431762695
+  }
+ },
+ "boost_g5_back": {
+  "state": {
+   "spacetime": "kerr",
+   "a": 0.9,
+   "kind": "zamo",
+   "r": 12,
+   "theta": 80,
+   "v": 0.9797958971132712,
+   "dir": "prograde",
+   "yaw": -90,
+   "fov": 90
+  },
+  "trace": {
+   "wallMs": 16.700000047683716,
+   "frames": 1,
+   "program": "trace_kerr_analytic+bs3"
+  },
+  "position": [
+   0,
+   12,
+   1.3962634015954636,
+   0
+  ],
+  "centreShift": 0.10918340542010747,
+  "shift": {
+   "min": 0.10918377339839935,
+   "median": 0.1224154531955719,
+   "max": 0.13798478245735168
+  }
+ },
+ "orbit_kerr_r6": {
+  "state": {
+   "spacetime": "kerr",
+   "a": 0.9,
+   "kind": "circularPro",
+   "r": 6,
+   "theta": 90,
+   "v": 0,
+   "yaw": 90,
+   "pitch": -10,
+   "fov": 100
+  },
+  "trace": {
+   "wallMs": 16.400000035762787,
+   "frames": 1,
+   "program": "trace_kerr_analytic+bs3"
+  },
+  "position": [
+   0,
+   6,
+   1.5707963267948966,
+   2.7755575615628914e-17
+  ],
+  "centreShift": 2.0017464260103908,
+  "shift": {
+   "min": 1.3304072618484497,
+   "median": 1.6477856636047363,
+   "max": 2.028233766555786
+  }
+ },
+ "fuzzball": {
+  "state": {
+   "spacetime": "st3cr",
+   "lambda": 0.005,
+   "kind": "zamo",
+   "r": 12,
+   "theta": 80,
+   "v": 0,
+   "N": 256
+  },
+  "trace": {
+   "wallMs": 1207,
+   "frames": 26,
+   "program": "trace+g34+reuse"
+  },
+  "position": [
+   0,
+   11.999999999999998,
+   1.3962634015954636,
+   0
+  ],
+  "centreShift": 1.0771604105430532,
+  "shift": {
+   "min": 1.0771507024765015,
+   "median": 1.0771604776382446,
+   "max": 1.0771700143814087
+  }
+ },
+ "colormap_kerr": {
+  "state": {
+   "spacetime": "kerr",
+   "a": 0.9,
+   "kind": "zamo",
+   "r": 12,
+   "theta": 80,
+   "v": 0,
+   "color": 0
+  },
+  "trace": {
+   "wallMs": 159.5,
+   "frames": 2,
+   "program": "trace_kerr_analytic+bs3"
+  },
+  "position": [
+   0,
+   12,
+   1.3962634015954636,
+   0
+  ],
+  "centreShift": 1.095327618607319,
+  "shift": {
+   "min": 1.0880316495895386,
+   "median": 1.0953468084335327,
+   "max": 1.1027220487594604
+  }
+ }
+}

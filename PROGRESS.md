@@ -260,3 +260,45 @@ The published `tracer.html`, Normal tier, N = 512 (laptop) and the default scene
 - The HUD now prints "fps while tracing" for the last trace.
 
 **CHECKPOINT G1:** tests pass; records bit-identical to FOORT-GPU on all 39 cases; device runs as above.
+
+## G2 — General observers and direct rendering (2026-11-18)
+
+Branch `g2-observers`; started right after G1 (working agreement).
+
+### Delivered
+
+- **Ship coordinates** (`js/physics/ksKerr.js`, `st3crCartesian.js`, `spacetime.js`): Kerr in Cartesian Kerr–Schild, ST3Cr in the base's Cartesian coordinates, each with its map to the tracer's coordinates (Boyer–Lindquist / base spherical), analytic Jacobians and vector maps.
+- **Observer families** (`js/physics/observers.js`): ZAMO, static (refused in the ergoregion with the plan's explanation), prograde/retrograde circular orbits; base frames and attitudes (yaw, pitch, roll); boosts relative to the observer (`js/camera/shipCamera.js`).
+- **Ship camera:** a state in ship coordinates → tracer event, frame and camera uniforms (G1's pinhole), so general observers need no shader change.
+- **Ship-frame redshift:** s = E_ship/E_∞ = 1/p_t per pixel (`js/physics/redshift.js` on the CPU; `shaders/glsl/display.glsl` on the GPU), applied to the disc's g and to the sky.
+- **Display** (`js/gl/display.js`, `shaders/glsl/display.glsl`, `tonemap.glsl`, `js/render/blackbody.js`): FOORT-GPU's emission (noise, slow light, tail) with the ship factor; colour modes FOORT colour map and blackbody (default); procedural stars or a picture; HDR, auto-exposure, ACES tone map.
+- **`observer.html`** (`js/g2Page.js`): pick the spacetime, observer, r, θ, speed and direction, attitude (or drag), field of view, colours, sky, turbulence, quality, N; the disc flickers in time. Linked from the landing page.
+
+### Tests
+
+| suite | result |
+|---|---|
+| Vitest | 48/48. New: Kerr–Schild vs BL (round trip, J^T g_BL J = g_KS to 1e-11 for a = 0, 0.5, 0.94 at 4 points each, the analytic Jacobian vs differences, det g = −1 and finite inside the horizon and on the axis); ST3Cr Cartesian = J^T g_sph J to 1e-10, conformally flat base, continuous on the axis (λ = 5e-3, 0.05, 0); ZAMO unit and L = 0; no static observer at r = 1.8 (a = 0.9, equator), one at 2.1; circular Ω = ±1/(r^1.5 ± a) to 1e-9; base frame = FOORT frame; attitude orthonormal; hovering blueshift 1/√(1 − 2/r) for all pixels; flat-limit Doppler γ(1 + v cos θ) and aberration for v = 0.3, 0.8, 0.98; ship camera through Kerr–Schild = FOORT's static vielbein (so static images are G1's, which are FOORT-GPU's); blackbody colours |
+| Playwright | 13/13. New: on the GPU, hovering in Schwarzschild at r = 4 and 10: every pixel's s within 2e-5 of 1/√(1 − 2/r); far away (r = 10⁵ M) at v = 0.5 and 0.9: s ahead = √((1+v)/(1−v)), behind its inverse, to 1e-3; both colour modes and the fuzzball render; the ergoregion message |
+| type check | clean |
+
+### Images (`dev/scripts/g2Shots.mjs`; PNGs in `dev/reports/img/g2/`, numbers in `dev/reports/g2/shots.json`)
+
+Kerr a = 0.9, 384², Normal, blackbody, stars:
+
+| shot | observer | s at the centre (min–max) |
+|---|---|---|
+| `zamo_kerr` | ZAMO, r = 12, θ = 80°, looking at the hole | 1.095 (1.088–1.103) = 1/α |
+| `static_kerr_r4` | hovering at r = 4, looking out | 1.413 everywhere = 1/√(−g_tt) |
+| `boost_g2` | ZAMO + γ = 2 prograde, looking ahead | 4.14 (γ(1+v) × ZAMO) |
+| `boost_g5` / `_back` | γ = 5 prograde, ahead / behind | 10.99 / 0.109 |
+| `orbit_kerr_r6` | circular prograde orbit at r = 6, looking ahead | 2.00 |
+| `fuzzball` | ST3Cr λ = 5e-3, ZAMO at r = 12 | 1.077 |
+| `colormap_kerr` | as `zamo_kerr`, FOORT colour map | — |
+
+What they show: the Doppler-bright approaching side, the shadow and photon ring; at γ = 5 aberration squeezes the hole (90° to the side in the rest frame) to about 11° from the centre of view and the sky ahead turns blue-white; the fuzzball has no shadow: starlight passes through its cap.
+
+### Notes
+
+- Moving or turning re-traces the whole image (≈ 0.1–0.5 s for Kerr, ≈ 1.2 s for the fuzzball at 384² on this laptop); smooth flight is G3's cubemap.
+- The blackbody tuning (T₀, exposure key) is a first choice; the tone map and exposure may want the user's eye.

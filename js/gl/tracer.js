@@ -98,6 +98,8 @@ export async function createTracer(gl, opts = {}) {
 
   /** @type {WebGLTexture|null} */
   let tableTex = null, fluidTex = null;
+  /** @type {any} */
+  let fluidGrid = null;
   const vao = gl.createVertexArray();
 
   /** @param {ReturnType<typeof build>} p @param {Uniforms} u */
@@ -171,10 +173,14 @@ export async function createTracer(gl, opts = {}) {
       for (const p of [gl.TEXTURE_MIN_FILTER, gl.TEXTURE_MAG_FILTER]) gl.texParameteri(gl.TEXTURE_2D, p, gl.NEAREST);
     },
 
+    /** the current fluid-table texture and grid (the display reads the circumferential radius) */
+    fluid: () => ({ tex: fluidTex, grid: fluidGrid }),
+
     /** fluid table (fluidTable.js) -> RGBA32F n x 1 @param {any} F */
     uploadFluid(F) {
       if (fluidTex) gl.deleteTexture(fluidTex);
       fluidTex = gl.createTexture();
+      fluidGrid = F.grid;
       gl.activeTexture(gl.TEXTURE0);
       gl.bindTexture(gl.TEXTURE_2D, fluidTex);
       gl.texStorage2D(gl.TEXTURE_2D, 1, gl.RGBA32F, F.grid.n, 1);

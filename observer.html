@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FOORT Flight observer view</title>
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="./style.css">
+<style>
+  #view { width: min(100%, 640px); aspect-ratio: 1; display: block; border: 1px solid var(--line); border-radius: 6px; background: #000; touch-action: none; cursor: grab; }
+  select, input[type=number] { background: var(--panel); color: var(--fg); border: 1px solid var(--line); border-radius: 6px; padding: 4px 6px; font: inherit; }
+  input[type=number] { width: 5.5em; }
+  label { white-space: nowrap; }
+  #hud, #info { font-variant-numeric: tabular-nums; font-size: 13px; }
+</style>
+</head>
+<body>
+<main>
+  <h1>FOORT Flight — observer view (G2)</h1>
+  <p class="muted"><a href="./">Home</a> · Any observer near a black hole or a fuzzball, traced pixel by pixel: lensing,
+    the observer's own redshift and Doppler shift, aberration, slow light. Drag on the image to look around (it re-traces;
+    smooth flying comes with the cubemap renderer).</p>
+  <div id="error" class="bad"></div>
+  <div class="row">
+    <label>Spacetime <select id="spacetime"><option value="kerr">Kerr black hole</option><option value="st3cr">ST3Cr fuzzball</option><option value="st3crBH">fuzzball λ = 0 (black hole)</option></select></label>
+    <label>spin a <input id="a" type="number" min="0" max="0.999" step="0.01"></label>
+    <label>λ <input id="lambda" type="number" min="0.0001" max="0.19" step="0.001"></label>
+  </div>
+  <div class="row">
+    <label>Observer <select id="kind"><option value="zamo">ZAMO</option><option value="static">static (hovering)</option><option value="circularPro">circular orbit, prograde</option><option value="circularRetro">circular orbit, retrograde</option></select></label>
+    <label>r (M) <input id="r" type="number" min="0.01" step="0.5"></label>
+    <label>θ (°) <input id="theta" type="number" min="0" max="180" step="1"></label>
+  </div>
+  <div class="row">
+    <label>speed v/c <input id="v" type="number" min="0" max="0.995" step="0.05"></label>
+    <label>towards <select id="dir"><option value="look">where I look</option><option value="radialIn">the centre</option><option value="radialOut">away from the centre</option><option value="prograde">prograde (+φ)</option><option value="retrograde">retrograde (−φ)</option><option value="north">north</option><option value="south">south</option></select></label>
+    <label>yaw <input id="yaw" type="number" step="5"></label>
+    <label>pitch <input id="pitch" type="number" min="-89" max="89" step="5"></label>
+    <label>roll <input id="roll" type="number" step="5"></label>
+    <label>field of view (°) <input id="fov" type="number" min="5" max="150" step="5"></label>
+  </div>
+  <div class="row">
+    <label>Colours <select id="color"><option value="1">blackbody</option><option value="0">FOORT colour map</option></select></label>
+    <label>T₀ (K) <input id="T0" type="number" min="1000" max="40000" step="500"></label>
+    <label>Sky <select id="sky"><option value="1">stars</option><option value="2">picture</option><option value="0">none</option></select></label>
+    <label>picture <select id="picture"></select></label>
+    <label>exposure <input id="exposure" type="number" min="0.01" step="0.25"></label>
+    <label>turbulence σ <input id="sigmaN" type="number" min="0" max="2" step="0.1"></label>
+    <label>time <select id="play"><option value="1">running</option><option value="0">paused</option></select></label>
+    <label>Quality <select id="tier"><option value="normal">Normal</option><option value="high">High</option><option value="reference">Reference</option></select></label>
+    <label>N <select id="N"><option>256</option><option>384</option><option>512</option><option>768</option><option>1024</option></select></label>
+  </div>
+  <canvas id="view" width="768" height="768"></canvas>
+  <p id="hud" class="muted">starting…</p>
+  <p id="info" class="muted"></p>
+  <p id="note" class="bad"></p>
+</main>
+<script type="module" src="./js/g2Page.js"></script>
+</body>
+</html>
