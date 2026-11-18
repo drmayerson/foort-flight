@@ -1,5 +1,7 @@
 // @ts-check
-// The game's display (G2): records of a direct trace -> HDR image (shaders/glsl/display.glsl) -> canvas
+// The game's display (G2, G3): records -> HDR image -> canvas. Two record sources: a direct trace of the screen
+// (shaders/glsl/display.glsl, `draw`) or a cubemap atlas of a reference observer (shaders/glsl/cubedisplay.glsl,
+// `drawCube`); both share shaders/glsl/shade.glsl. HDR -> canvas: shaders/glsl/tonemap.glsl,
 // (shaders/glsl/tonemap.glsl), with auto-exposure ("eye adaptation", plan 4.5) from the mean luminance of the HDR
 // image, read back asynchronously (mipmap level 1 x 1, PBO + fence) every few frames: never a CPU wait.
 
@@ -52,7 +54,9 @@ export async function createDisplay(gl) {
     const loc = (/** @type {string} */ n) => { if (!cache.has(n)) cache.set(n, gl.getUniformLocation(prog, n)); return cache.get(n) ?? null; };
     return { prog, loc };
   };
-  const disp = build(await src('display.glsl'), 'display.glsl');
+  const shadeSrc = await src('shade.glsl');
+  const disp = build(shadeSrc + await src('display.glsl'), 'display.glsl');
+  const cube = build(shadeSrc + await src('cubedisplay.glsl'), 'cubedisplay.glsl');
   const tone = build(await src('tonemap.glsl'), 'tonemap.glsl');
   const vao = gl.createVertexArray();
   const tex2 = (/** @type {number} */ w, /** @type {number} */ h, /** @type {number} */ fmt) => {
@@ -151,7 +155,42 @@ export async function createDisplay(gl) {
      * @param {{x?: number, y?: number, w?: number, h?: number, raw?: boolean, M?: number, skyTheta?: number, skyHalf?: number}} [o]
      */
     draw(T, cam, fluid, tailGeom, P, o = {}) {
-      const w = T.w, h = T.h;
+      api.render(disp, T.w, T.h, T, fluid, tailGeom, P, o, (L) => {
+        gl.uniform4i(L('uImg'), T.w, T.h, 0, 0);
+        gl.uniformMatrix4fv(L('uE'), false, Float32Array.from(cam.uE[1]));
+        gl.uniformMatrix4fv(L('uG'), false, Float32Array.from(cam.uG[1]));
+        gl.uniform4fv(L('uCam'), Array.from(cam.uCam[1]));
+        gl.uniform4fv(L('uScreen'), Array.from(cam.uScreen[1]));
+      });
+    },
+
+    /**
+     * Draw the view of a ship from a cubemap atlas (G3) into a w x h HDR image, then tone-map into the canvas viewport.
+     * @param {import('./tracer.js').RecordTarget} atlas @param {number} N face size
+     * @param {{M: number[], refT: number[], tanX: number, tanY: number}} view from js/physics/refFrame.js
+     * @param {any} fluid @param {{xLo:number, invWidth:number, K:number}|null} tailGeom @param {DisplayParams} P
+     * @param {number} w @param {number} h
+     * @param {{x?: number, y?: number, w?: number, h?: number, raw?: boolean, M?: number, skyTheta?: number, skyHalf?: number}} [o]
+     */
+    drawCube(atlas, N, view, fluid, tailGeom, P, w, h, o = {}) {
+      api.render(cube, w, h, atlas, fluid, tailGeom, P, o, (L) => {
+        gl.uniform4i(L('uAtlas'), N, atlas.w, atlas.h, 0);
+        // stars: escape directions are interpolated between texels unless they span more than 0.25 rad (a lensing
+        // discontinuity: the shadow's edge, the photon ring), where colours are blended instead
+        gl.uniform4f(L('uShip'), view.tanX, view.tanY, Math.cos(0.25), 0);
+        gl.uniformMatrix4fv(L('uM'), false, Float32Array.from(view.M));
+        gl.uniform4fv(L('uRefT'), view.refT);
+        gl.uniform4f(L('uDst'), 0, 0, w, h);
+      });
+    },
+
+    /**
+     * Shared pass: shading uniforms, the program's own uniforms, the HDR (or raw) target, auto-exposure, tone pass.
+     * @param {{prog: WebGLProgram, loc: (n: string) => WebGLUniformLocation|null}} prog @param {number} w @param {number} h
+     * @param {import('./tracer.js').RecordTarget} T @param {any} fluid @param {any} tailGeom @param {DisplayParams} P
+     * @param {any} o @param {(L: (n: string) => WebGLUniformLocation|null) => void} specific
+     */
+    render(prog, w, h, T, fluid, tailGeom, P, o, specific) {
       if (!hdr || hdr.w !== w || hdr.h !== h) {
         if (hdr) { gl.deleteTexture(hdr.tex); gl.deleteFramebuffer(hdr.fbo); }
         hdr = makeHdr(w, h, true, gl.RGBA16F);
@@ -164,15 +203,11 @@ export async function createDisplay(gl) {
       gl.bindFramebuffer(gl.FRAMEBUFFER, target.fbo);
       gl.viewport(0, 0, w, h);
       gl.disable(gl.SCISSOR_TEST);
-      gl.useProgram(disp.prog);
+      gl.useProgram(prog.prog);
       gl.bindVertexArray(vao);
-      const L = disp.loc;
+      const L = prog.loc;
       for (let k = 0; k < 6; k++) bind(T.tex[k], k, L(`uR${k}`));
-      gl.uniform4i(L('uImg'), w, h, 0, 0);
-      gl.uniformMatrix4fv(L('uE'), false, Float32Array.from(cam.uE[1]));
-      gl.uniformMatrix4fv(L('uG'), false, Float32Array.from(cam.uG[1]));
-      gl.uniform4fv(L('uCam'), Array.from(cam.uCam[1]));
-      gl.uniform4fv(L('uScreen'), Array.from(cam.uScreen[1]));
+      specific(L);
       gl.uniform4i(L('uView'), P.colorMode, P.skyMode, tailGeom ? 1 : 0, o.raw ? 1 : 0);
       gl.uniform4f(L('uEm'), P.em.mu, P.em.gamma, P.em.sigma, P.em.p);
       gl.uniform4f(L('uEm2'), P.em.fudge, P.em.maxPasses, P.em.circumferential ? 1 : 0, P.exposure);
@@ -197,7 +232,6 @@ export async function createDisplay(gl) {
       for (let k = 0; k < 10; k++) { gl.activeTexture(gl.TEXTURE0 + k); gl.bindTexture(gl.TEXTURE_2D, null); gl.bindTexture(gl.TEXTURE_3D, null); }
       gl.bindFramebuffer(gl.FRAMEBUFFER, null);
       if (o.raw) return;
-
       // auto-exposure: mean luminance of the HDR image (1 x 1 mip), read back asynchronously
       if (P.colorMode === 1 && P.autoExposure) {
         gl.bindTexture(gl.TEXTURE_2D, hdr.tex);

@@ -302,3 +302,60 @@ What they show: the Doppler-bright approaching side, the shadow and photon ring;
 
 - Moving or turning re-traces the whole image (≈ 0.1–0.5 s for Kerr, ≈ 1.2 s for the fuzzball at 384² on this laptop); smooth flight is G3's cubemap.
 - The blackbody tuning (T₀, exposure key) is a first choice; the tone map and exposure may want the user's eye.
+
+## G3 — Cubemap renderer (2026-11-18)
+
+Branch `g3-cubemap`; started right after G2.
+
+### Delivered
+
+- **Cubemap tracing** (`js/gl/cubemap.js`): the six 90° faces of a reference observer (the ZAMO frame at the ship, boosted by the ship's ZAMO-frame velocity) in one 3N × 2N record atlas, traced chunk by chunk inside the frame budget; per face only `uE`/`uScreen` differ (no shader change).
+- **Long rays split across frames** (option 1): for the fuzzball, FOORT-GPU's compaction mode (stop at 600 steps; asynchronous list of unfinished rays; resume rounds in a compact image; scatter back). Exact: record cores bit-identical to a single pass.
+- **Display from the cubemap** (`shaders/glsl/cubedisplay.glsl`, shared shading in `shade.glsl`; `js/physics/refFrame.js`): per pixel one 4×4 map ship frame → reference frame, t and φ by symmetry, the ship factor from the pixel's own ray, emission of the 4 nearest texels blended, stars from interpolated escape directions.
+- **Refresh:** a background loop traces cubemaps one after another (coarse first, double-buffered, idle while nothing changes); staleness (relative displacement in (r, θ), relative speed) in the HUD.
+- **`cubemap.html`** (`js/g3Page.js`): scripted paths turn, orbit (r = 8 M), dive (20 → 6 → 20 M), close in (r = 3–4 M), flyby (v = 0.8 c); Kerr a = 0.9, fuzzball λ = 5e-3 and λ = 0; face 128/256/384; inset of the cubemap being traced.
+- **Scripts:** `g3Compare.mjs` (cubemap vs direct trace), `g3Fly.mjs` (frame pacing, refreshes, screenshots).
+
+### Tests
+
+| suite | result |
+|---|---|
+| Vitest | 53/53. New: the ship → reference map is the identity (no attitude) or the attitude rotation (turned ship), exact for a stale velocity at the same point, Lorentz in general; staleness; each atlas texel gets its own face's screen point; rays null |
+| Playwright | 16/16. New: turning in Kerr at frame rate; cubemap vs direct (Kerr, static): s to 1e-5, emission L1 < 0.1, sky median < 1 px; ray splitting reproduces the single-pass records (fuzzball, 48² faces, n₁ = 300) |
+| type check | clean |
+
+### Cubemap vs direct trace (`dev/reports/g3/compare_kerr_N256.json`, `compare_log.txt`)
+
+256² screen, 70° field, fresh cubemap at the observer's state, RK4 on both sides (see "BS3" below).
+
+| case | face | emission L1 | sky error (screen px) p50 / p90 / p99 | s error |
+|---|---|---|---|---|
+| Kerr a = 0.9, static at 12 M | 128 / 256 / 384 | 4.8% / 2.3% / 1.5% | 0.39 / 0.92 / 1.48 (face 256) | 2e-7 |
+| Kerr, circular orbit at 8 M | 128 / 256 / 384 | 10.4% / 5.6% / 3.6% | 0.42 / 0.99 / 1.46 | 4e-7 |
+| Kerr, γ = 2 (prograde) | 128 / 256 / 384 | 4.2% / 2.2% / 1.3% | 0.47 / 1.10 / 1.67 | 2e-6 |
+| Kerr, γ = 5 | 128 / 256 / 384 | 10.8% / 5.9% / 3.5% | 0.29 / 1.13 / 1.77 | 9e-6 |
+| fuzzball λ = 5e-3, ZAMO at 3 M | 128 / 256 / 384 | 17.3% / 13.1% / 11.2% | 0.18 / 0.45 / 3.28 | 1e-7 |
+| fuzzball, orbit at 8 M | 128 / 256 / 384 | 12.1% / 5.0% / 2.8% | 0.32 / 0.94 / 1.40 | 3e-7 |
+| fuzzball, γ = 2 inward at 6 M | 128 / 256 / 384 | 2.1% / 1.2% / 0.8% | 0.31 / 0.82 / 1.21 | 1e-6 |
+
+- Errors come from the cube's resolution only: emission L1 roughly halves per doubling of the face, the ship factor is exact. The emission L1 is a per-pixel measure of a sharp, turbulent disc (the noise field at σ = 0.6); the cube blends 4 texels, a slight blur.
+- The fuzzball's 11–17% at 3 M is its chaotic interior (G1: 1.5% of classes and 2–6% of escape directions change under ε → ε(1 + 1e-6)); it falls to 1–5% where the view is not dominated by the cap.
+- **BS3:** with FOORT-GPU's Normal tier (error-controlled BS3) the Kerr sky error stayed at ~1 px at every face size; it is BS3's own error for a near camera with a wide field. The game now traces with RK4 at every tier (DECISIONS).
+
+### Frame pacing and refresh (this laptop, Chrome, headed; `dev/reports/g3/fly_headed*.json`)
+
+| path | fps | frame p90 | cubemaps (face 256) |
+|---|---|---|---|
+| Kerr: turn / orbit | 59.9 | 16.8–16.9 ms | 1 (no refresh needed: t, φ and attitude are symmetries / free) |
+| Kerr: dive / close / flyby | 59.9 | 16.8–17.0 ms | 57 / 37 / 64 in 8 s; each 0.12–0.22 s |
+| fuzzball: turn | 59.9 | 16.8 ms | 1 (1.2 s) |
+| fuzzball: close in (3–4 M) / flyby | 59.9 | 16.9 ms | 4 / 13 in 15 s; each 3.6 s / 1.8 s, 8 resume rounds |
+| fuzzball close in, face 128 | 59.9 | 16.8 ms | 17 in 15 s; 0.86 s each |
+
+Plan acceptance (laptop): Kerr cubemap 6 × 256² ≤ 1 s → 0.12–0.25 s ✓; fuzzball ≤ 5 s → 1.2–3.6 s (4.5 s for the hardest static view at 3 M) ✓; 60 fps while turning ✓ and while refreshing ✓. Without ray splitting (G1) the fuzzball frame p90 was 33 ms; now 16.9 ms.
+
+### Open points
+
+- Inside the fuzzball's cap neighbouring texels escape in unrelated directions (chaos), so stars there show as texel-sized squares (colour blending fallback). Candidates for G7: a finer face for the cap's solid angle, or drawing chaotic texels' sky as a smooth average.
+- Not yet: cross-fading between cubemaps; refresh priority from a per-pixel error estimate (texel Jacobians); debug views for staleness and direct-vs-cube difference on the page (the numbers come from `g3Compare.mjs`).
+- Phone and Firefox runs of `cubemap.html` (published with this merge).

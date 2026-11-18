@@ -32,16 +32,20 @@ export function bandsCentreOut(h) {
 export class TraceJob {
   /**
    * @param {Tracer} tracer @param {string} program @param {import('./tracer.js').Uniforms} uniforms @param {RecordTarget} target
+   * @param {Rect} [region] the part of the target to trace (default all of it; cubemap faces, compact rows)
+   * @param {{img?: number[], textures?: Record<string, WebGLTexture|null>}} [extra] passed to encodeChunk
    */
-  constructor(tracer, program, uniforms, target) {
+  constructor(tracer, program, uniforms, target, region, extra) {
     this.tracer = tracer; this.program = program; this.uniforms = uniforms; this.target = target;
-    this.bands = bandsCentreOut(target.h);
+    this.region = region ?? { x: 0, y: 0, w: target.w, h: target.h };
+    this.extra = extra;
+    this.bands = bandsCentreOut(this.region.h);
     this.band = 0; this.x = 0;
-    this.raysDone = 0; this.raysTotal = target.w * target.h;
+    this.raysDone = 0; this.raysTotal = this.region.w * this.region.h;
     this.started = NaN; this.frames = 0;
-    /** @type {(v: {wallMs: number, frames: number, rays: number}) => void} */
+    /** @type {(v: {wallMs: number, frames: number, rays: number, cancelled?: boolean}) => void} */
     this.resolve = () => {};
-    /** @type {Promise<{wallMs: number, frames: number, rays: number}>} */
+    /** @type {Promise<{wallMs: number, frames: number, rays: number, cancelled?: boolean}>} */
     this.done = new Promise((res) => { this.resolve = res; });
     this.cancelled = false;
   }
@@ -51,13 +55,13 @@ export class TraceJob {
   /** the next chunk of at most `rays` rays (at least one band segment of 16 pixels) @param {number} rays @returns {Rect|null} */
   next(rays) {
     if (this.encoded) return null;
-    const { w, h } = this.target, y = this.bands[this.band], bh = Math.min(BAND, h - y);
+    const { w, h } = this.region, y = this.bands[this.band], bh = Math.min(BAND, h - y);
     const width = Math.max(BAND, Math.min(w - this.x, Math.floor(rays / bh)));
     const rect = { x: this.x, y, w: Math.min(width, w - this.x), h: bh };
     this.x += rect.w;
     if (this.x >= w) { this.x = 0; this.band++; }
     this.raysDone += rect.w * rect.h;
-    return rect;
+    return { x: rect.x + this.region.x, y: rect.y + this.region.y, w: rect.w, h: rect.h };
   }
 }
 
@@ -95,15 +99,21 @@ export class FrameScheduler {
     this.trace = [];
   }
 
-  /** queue a trace @param {string} program @param {import('./tracer.js').Uniforms} uniforms @param {RecordTarget} target */
-  submit(program, uniforms, target) {
-    const job = new TraceJob(this.tracer, program, uniforms, target);
+  /**
+   * queue a trace @param {string} program @param {import('./tracer.js').Uniforms} uniforms @param {RecordTarget} target
+   * @param {Rect} [region] @param {{img?: number[], textures?: Record<string, WebGLTexture|null>}} [extra]
+   */
+  submit(program, uniforms, target, region = undefined, extra = undefined) {
+    const job = new TraceJob(this.tracer, program, uniforms, target, region, extra);
     this.queue.push(job);
     return job;
   }
 
   /** drop queued work (records already traced stay) */
-  cancelAll() { for (const j of this.queue) { j.cancelled = true; } this.queue = []; }
+  cancelAll() {
+    for (const j of this.queue) { j.cancelled = true; j.resolve({ wallMs: NaN, frames: j.frames, rays: j.raysDone, cancelled: true }); }
+    this.queue = [];
+  }
 
   /** the device's refresh interval: a low percentile of recent frame intervals */
   /** rays per GPU ms of the program at the head of the queue (NaN until measured) */
@@ -184,7 +194,7 @@ export class FrameScheduler {
       if (Number.isNaN(job.started)) job.started = performance.now();
       const rect = job.next(Math.min(budget, this.maxChunkRays));
       if (rect) {
-        this.tracer.encodeChunk(job.program, job.uniforms, job.target, rect);
+        this.tracer.encodeChunk(job.program, job.uniforms, job.target, rect, job.extra);
         budget -= rect.w * rect.h;
         this.cur.rays += rect.w * rect.h;
       }

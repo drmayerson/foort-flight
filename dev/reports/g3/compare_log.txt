@@ -1,0 +1,21 @@
+kerr_static   face 128: emission L1 4.77e-2, s max rel 2.2e-7, sky px p50 0.69 p90 1.98 p99 3.41 (40785 px); cube 1.16 s
+kerr_static   face 256: emission L1 2.26e-2, s max rel 2.2e-7, sky px p50 0.96 p90 1.60 p99 2.21 (43912 px); cube 0.21 s
+kerr_static   face 384: emission L1 1.45e-2, s max rel 2.2e-7, sky px p50 0.24 p90 1.17 p99 2.20 (44972 px); cube 0.40 s
+kerr_orbit    face 128: emission L1 1.05e-1, s max rel 3.6e-7, sky px p50 0.51 p90 2.21 p99 3.56 (39538 px); cube 0.04 s
+kerr_orbit    face 256: emission L1 5.61e-2, s max rel 3.6e-7, sky px p50 1.36 p90 1.89 p99 2.17 (40961 px); cube 0.07 s
+kerr_orbit    face 384: emission L1 3.61e-2, s max rel 3.6e-7, sky px p50 0.22 p90 1.14 p99 2.57 (41422 px); cube 0.14 s
+kerr_fast_g2  face 128: emission L1 4.23e-2, s max rel 1.6e-6, sky px p50 0.90 p90 2.70 p99 4.08 (59503 px); cube 0.05 s
+kerr_fast_g2  face 256: emission L1 2.19e-2, s max rel 1.6e-6, sky px p50 1.27 p90 2.21 p99 3.23 (60728 px); cube 0.05 s
+kerr_fast_g2  face 384: emission L1 1.33e-2, s max rel 1.6e-6, sky px p50 0.26 p90 1.68 p99 3.24 (61134 px); cube 0.09 s
+kerr_fast_g5  face 128: emission L1 1.08e-1, s max rel 9.2e-6, sky px p50 0.69 p90 3.88 p99 4.42 (63584 px); cube 0.05 s
+kerr_fast_g5  face 256: emission L1 5.88e-2, s max rel 9.2e-6, sky px p50 1.60 p90 2.79 p99 3.10 (64431 px); cube 0.04 s
+kerr_fast_g5  face 384: emission L1 3.52e-2, s max rel 9.2e-6, sky px p50 0.25 p90 1.26 p99 3.74 (64635 px); cube 0.10 s
+fuzz_static   face 128: emission L1 1.73e-1, s max rel 9.4e-8, sky px p50 0.21 p90 0.51 p99 1.08 (31275 px); cube 5.62 s, 8 rounds
+fuzz_static   face 256: emission L1 1.31e-1, s max rel 9.4e-8, sky px p50 0.18 p90 0.45 p99 3.28 (37783 px); cube 4.45 s, 8 rounds
+fuzz_static   face 384: emission L1 1.12e-1, s max rel 9.4e-8, sky px p50 0.18 p90 0.46 p99 2.23 (41251 px); cube 9.12 s, 8 rounds
+fuzz_orbit    face 128: emission L1 1.21e-1, s max rel 2.5e-7, sky px p50 0.44 p90 0.98 p99 1.48 (65536 px); cube 0.61 s, 8 rounds
+fuzz_orbit    face 256: emission L1 5.03e-2, s max rel 2.5e-7, sky px p50 0.32 p90 0.94 p99 1.40 (65536 px); cube 1.39 s, 8 rounds
+fuzz_orbit    face 384: emission L1 2.77e-2, s max rel 2.5e-7, sky px p50 0.16 p90 0.84 p99 1.35 (65536 px); cube 2.41 s, 8 rounds
+fuzz_fast_g2  face 128: emission L1 2.07e-2, s max rel 9.8e-7, sky px p50 0.38 p90 0.86 p99 1.20 (63321 px); cube 0.57 s, 8 rounds
+fuzz_fast_g2  face 256: emission L1 1.24e-2, s max rel 9.8e-7, sky px p50 0.31 p90 0.82 p99 1.21 (64231 px); cube 0.85 s, 8 rounds
+fuzz_fast_g2  face 384: emission L1 8.49e-3, s max rel 9.8e-7, sky px p50 0.24 p90 0.79 p99 1.20 (64451 px); cube 1.39 s, 8 rounds

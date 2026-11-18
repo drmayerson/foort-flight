@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FOORT Flight cubemap</title>
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="./style.css">
+<style>
+  #view { width: min(100%, 768px); aspect-ratio: 1; display: block; border: 1px solid var(--line); border-radius: 6px; background: #000; }
+  select { background: var(--panel); color: var(--fg); border: 1px solid var(--line); border-radius: 6px; padding: 4px 6px; font: inherit; }
+  #hud, #info { font-variant-numeric: tabular-nums; font-size: 13px; }
+</style>
+</head>
+<body>
+<main>
+  <h1>FOORT Flight — cubemap renderer (G3)</h1>
+  <p class="muted"><a href="./">Home</a> · The view is drawn every frame from a cubemap of ray-traced records around a
+    reference observer; turning, moving in time and around the axis, and changing speed are free. New cubemaps are traced
+    in the background (inset: the cubemap being traced, four-colour view) when the observer moves in r or θ.</p>
+  <div id="error" class="bad"></div>
+  <div class="row">
+    <label>Path <select id="path"><option value="turn">look around (fixed place)</option><option value="orbit">circular orbit, r = 8 M</option><option value="dive">dive to 6 M and back</option><option value="close">close in (r = 3–4 M)</option><option value="flyby">fast flyby (v = 0.8 c)</option></select></label>
+    <label>Spacetime <select id="spacetime"><option value="kerr">Kerr a = 0.9</option><option value="st3cr">fuzzball λ = 5e-3</option><option value="st3crBH">fuzzball λ = 0</option></select></label>
+    <label>Cube face <select id="faceN"><option>128</option><option selected>256</option><option>384</option></select></label>
+    <label>Quality <select id="tier"><option value="normal">Normal</option><option value="high">High</option></select></label>
+    <label>Colours <select id="color"><option value="1">blackbody</option><option value="0">FOORT colour map</option></select></label>
+    <label>Sky <select id="sky"><option value="1">stars</option><option value="0">none</option></select></label>
+    <label>Inset <select id="atlas"><option value="1">cubemap</option><option value="0">off</option></select></label>
+    <label>Time <select id="play"><option value="1">running</option><option value="0">paused</option></select></label>
+  </div>
+  <canvas id="view" width="768" height="768"></canvas>
+  <p id="hud" class="muted">starting…</p>
+  <p id="info" class="muted"></p>
+  <p id="note" class="bad"></p>
+</main>
+<script type="module" src="./js/g3Page.js"></script>
+</body>
+</html>

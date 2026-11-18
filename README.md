@@ -13,6 +13,7 @@ It builds on [FOORT-GPU](https://github.com/drmayerson/foort-gpu), the validated
 |---|---|
 | `index.html` | landing page; checks WebGL2 and explains what to do without it |
 | `caps.html` | WebGPU capabilities of this device (adapter, features, limits), with a JSON report |
+| `cubemap.html` | G3 cubemap renderer: the view drawn every frame from a cubemap of records; scripted paths (turn, orbit, dive, close in, flyby); continuous background refresh; ray splitting for the fuzzball |
 | `observer.html` | G2 direct rendering: an observer (ZAMO, static, circular; boosted; any attitude) set up in the ship's coordinates; ship-frame redshift; blackbody or colour-map disc; stars or a picture |
 | `tracer.html` | G1 tracer test: FOORT-GPU's tracer in the game's frame loop, static observer, FOORT or pinhole camera, debug views, load test |
 | `latency.html` | WebGPU and WebGL2: correctness, the CPU-wait cost per GPU submission, and frame loops with a work budget |
@@ -38,4 +39,6 @@ npm run serve            # http://127.0.0.1:8766/
 node scripts/g0Report.mjs   # caps + latency reports into dev/reports/g0/
 node scripts/g1Compare.mjs  # records vs the FOORT-GPU viewer (../foort-gpu at the vendored commit)
 node scripts/g2Shots.mjs    # observer-view screenshots (dev/reports/img/g2/) and their shift factors
+node scripts/g3Compare.mjs  # cubemap vs direct trace (emission L1, sky error in pixels) per face size
+node scripts/g3Fly.mjs      # fly the cubemap page's paths: frame pacing, refresh rates, screenshots
 ```

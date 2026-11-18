@@ -1,0 +1,24 @@
+[
+ {
+  "query": "spacetime=st3cr&faceN=128",
+  "path": "close",
+  "seconds": 15,
+  "frames": {
+   "n": 598,
+   "median": 16.700000000000728,
+   "p10": 16.599999999998545,
+   "p90": 16.80000000000164,
+   "min": 16,
+   "max": 66.70000000000073,
+   "mean": 17.297658862876254
+  },
+  "refreshes": 17,
+  "lastRefresh": {
+   "wallMs": 863.3999999761581,
+   "rounds": 8,
+   "frames": 19,
+   "split": true,
+   "N": 128
+  }
+ }
+]

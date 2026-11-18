@@ -71,12 +71,30 @@ export async function createTracer(gl, opts = {}) {
     return { prog, loc: (/** @type {string} */ n) => { if (!loc.has(n)) loc.set(n, gl.getUniformLocation(prog, n)); return loc.get(n) ?? null; } };
   };
 
+  /** a program from its own vertex and fragment sources @param {string} vs @param {string} fs @param {string} label */
+  const buildPlain = (vs, fs, label) => {
+    const prog = /** @type {WebGLProgram} */ (gl.createProgram());
+    for (const [type, src] of /** @type {[number, string][]} */ ([[gl.VERTEX_SHADER, vs], [gl.FRAGMENT_SHADER, fs]])) {
+      const sh = /** @type {WebGLShader} */ (gl.createShader(type));
+      gl.shaderSource(sh, src); gl.compileShader(sh);
+      if (!gl.getShaderParameter(sh, gl.COMPILE_STATUS)) throw new Error(`${label}: ${gl.getShaderInfoLog(sh)}`);
+      gl.attachShader(prog, sh);
+    }
+    gl.linkProgram(prog);
+    if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) throw new Error(`${label} link: ${gl.getProgramInfoLog(prog)}`);
+    return { prog, loc: (/** @type {string} */ n) => gl.getUniformLocation(prog, n) };
+  };
+  /** @type {ReturnType<typeof buildPlain>|null} */
+  let scatterProg = null;
+
   /** @type {Map<string, ReturnType<typeof build>>} */
   const programs = new Map();
-  const FLAG_DEFINES = /** @type {Record<string, string>} */ ({ g34: 'G3_EQUALS_G4', reuse: 'TEXEL_REUSE', bs3: 'BS3' });
+  const FLAG_DEFINES = /** @type {Record<string, string>} */ ({ g34: 'G3_EQUALS_G4', reuse: 'TEXEL_REUSE', bs3: 'BS3', compact: 'COMPACT' });
+  const COMPACT_OK = gl.getParameter(gl.MAX_DRAW_BUFFERS) >= 8;
   /**
    * The program for a tracer name of traceConfig.tracerFor: 'trace_kerr_analytic', 'trace', 'closed_<metric>', with
-   * '+g34', '+reuse', '+bs3' flags. Ray compaction ('+compact', 8 attachments) is not supported in the game.
+   * '+g34', '+reuse', '+bs3', '+compact' flags. '+compact' (FOORT-GPU's ray compaction: stop at a step limit, resume
+   * listed rays) needs 8 draw buffers and 8-attachment targets; the game uses it to split long rays across frames (G3).
    * @param {string} name
    */
   const program = async (name) => {
@@ -84,6 +102,7 @@ export async function createTracer(gl, opts = {}) {
     if (p) return p;
     const [b, ...flags] = name.split('+');
     if (b.endsWith('_half')) throw new Error('half-float tables are not supported');
+    if (flags.includes('compact') && !COMPACT_OK) throw new Error('ray splitting (compaction) needs 8 draw buffers');
     const closed = b.startsWith('closed_') ? b.slice(7) : null;
     const file = closed ? 'trace' : b;
     const pre = closed ? '#define CLOSED_FORM 1\n' + await load(`closed/${closed}`) + '\n' : '';
@@ -113,12 +132,12 @@ export async function createTracer(gl, opts = {}) {
     }
   };
 
-  /** @param {number} w @param {number} h @returns {RecordTarget} */
-  const makeTarget = (w, h) => {
+  /** @param {number} w @param {number} h @param {number} [nAtt] 6 (the record) or 8 (+ compaction state) @returns {RecordTarget} */
+  const makeTarget = (w, h, nAtt = RECORD_ATTACHMENTS) => {
     const fbo = /** @type {WebGLFramebuffer} */ (gl.createFramebuffer());
     gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);
     const tex = [];
-    for (let k = 0; k < RECORD_ATTACHMENTS; k++) {
+    for (let k = 0; k < nAtt; k++) {
       const t = /** @type {WebGLTexture} */ (gl.createTexture());
       gl.bindTexture(gl.TEXTURE_2D, t);
       gl.texStorage2D(gl.TEXTURE_2D, 1, gl.RGBA32F, w, h);
@@ -136,8 +155,9 @@ export async function createTracer(gl, opts = {}) {
   return {
     gl, timerExt,
 
-    /** a record target: 6 RGBA32F attachments (the 24-float record) @param {number} w @param {number} h */
+    /** a record target: 6 RGBA32F attachments (the 24-float record), or 8 with the compaction state */
     makeTarget,
+    compactSupported: () => COMPACT_OK,
 
     /** @param {RecordTarget} T */
     freeTarget(T) { gl.deleteFramebuffer(T.fbo); T.tex.forEach((t) => gl.deleteTexture(t)); },
@@ -146,7 +166,7 @@ export async function createTracer(gl, opts = {}) {
     clearTarget(T) {
       gl.bindFramebuffer(gl.FRAMEBUFFER, T.fbo);
       const z = new Float32Array(4);
-      for (let k = 0; k < RECORD_ATTACHMENTS; k++) gl.clearBufferfv(gl.COLOR, k, z);
+      for (let k = 0; k < T.tex.length; k++) gl.clearBufferfv(gl.COLOR, k, z);
       gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     },
 
@@ -190,9 +210,12 @@ export async function createTracer(gl, opts = {}) {
 
     /**
      * Issue one trace draw over `rect` of target T (no wait). The program must have been prepared.
+     * `extra`: uImg override (resume passes: the size of the image the rays belong to, not of the compact target) and
+     * extra textures by uniform name (uIndex, uPrev0-7), bound from unit 2 on.
      * @param {string} name program @param {Uniforms} uniforms @param {RecordTarget} T @param {Rect} rect
+     * @param {{img?: number[], textures?: Record<string, WebGLTexture|null>}} [extra]
      */
-    encodeChunk(name, uniforms, T, rect) {
+    encodeChunk(name, uniforms, T, rect, extra) {
       const p = programs.get(name);
       if (!p) throw new Error(`program ${name} not prepared`);
       gl.bindFramebuffer(gl.FRAMEBUFFER, T.fbo);
@@ -212,8 +235,19 @@ export async function createTracer(gl, opts = {}) {
       gl.activeTexture(gl.TEXTURE1);
       gl.bindTexture(gl.TEXTURE_2D, fluidTex);
       gl.uniform1i(p.loc('uFluid'), 1);
-      gl.uniform4i(p.loc('uImg'), T.w, T.h, 0, 0);
+      const img = extra?.img ?? [T.w, T.h];
+      gl.uniform4i(p.loc('uImg'), img[0], img[1], 0, 0);
+      // the compaction program's integer sampler uIndex must not share a texture unit with a float sampler (WebGL then
+      // refuses the draw, silently): when it is not used (mode 1), it points at a unit of its own
+      if (p.loc('uIndex') && !extra?.textures?.uIndex) gl.uniform1i(p.loc('uIndex'), 15);
+      let unit = 2;
+      for (const [n, t] of Object.entries(extra?.textures ?? {})) {
+        gl.activeTexture(gl.TEXTURE0 + unit);
+        gl.bindTexture(gl.TEXTURE_2D, t);
+        gl.uniform1i(p.loc(n), unit++);
+      }
       gl.drawArrays(gl.TRIANGLES, 0, 3);
+      for (let u = 2; u < unit; u++) { gl.activeTexture(gl.TEXTURE0 + u); gl.bindTexture(gl.TEXTURE_2D, null); }
       gl.disable(gl.SCISSOR_TEST);
       gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     },
@@ -222,9 +256,9 @@ export async function createTracer(gl, opts = {}) {
      * Read a target back asynchronously (PBO + polled fence): 24 floats per pixel, row 0 at the bottom.
      * @param {RecordTarget} T @returns {Promise<Float32Array>}
      */
-    async readRecords(T) {
+    async readRecords(T) {   // the 24-float record (attachments 0-5)
       const n = T.w * T.h;
-      const pbos = T.tex.map((_, k) => {
+      const pbos = T.tex.slice(0, RECORD_ATTACHMENTS).map((_, k) => {
         const pbo = /** @type {WebGLBuffer} */ (gl.createBuffer());
         gl.bindBuffer(gl.PIXEL_PACK_BUFFER, pbo);
         gl.bufferData(gl.PIXEL_PACK_BUFFER, 16 * n, gl.STREAM_READ);
@@ -247,6 +281,61 @@ export async function createTracer(gl, opts = {}) {
       gl.bindBuffer(gl.PIXEL_PACK_BUFFER, null);
       return out;
     },
+
+    /**
+     * Attachment 0 (termination code, steps, theta, phi) of a rectangle, read back asynchronously (PBO + polled fence).
+     * @param {RecordTarget} T @param {Rect} [rect] @returns {Promise<Float32Array>}
+     */
+    async readRec0(T, rect = { x: 0, y: 0, w: T.w, h: T.h }) {
+      const n = rect.w * rect.h;
+      const pbo = /** @type {WebGLBuffer} */ (gl.createBuffer());
+      gl.bindBuffer(gl.PIXEL_PACK_BUFFER, pbo);
+      gl.bufferData(gl.PIXEL_PACK_BUFFER, 16 * n, gl.STREAM_READ);
+      gl.bindFramebuffer(gl.FRAMEBUFFER, T.fbo);
+      gl.readBuffer(gl.COLOR_ATTACHMENT0);
+      gl.readPixels(rect.x, rect.y, rect.w, rect.h, gl.RGBA, gl.FLOAT, 0);
+      gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+      gl.bindBuffer(gl.PIXEL_PACK_BUFFER, null);
+      await fenceDone(gl);
+      const out = new Float32Array(4 * n);
+      gl.bindBuffer(gl.PIXEL_PACK_BUFFER, pbo);
+      gl.getBufferSubData(gl.PIXEL_PACK_BUFFER, 0, out);
+      gl.bindBuffer(gl.PIXEL_PACK_BUFFER, null);
+      gl.deleteBuffer(pbo);
+      return out;
+    },
+
+    /** an R32I texture of pixel indices (-1: padding) @param {number} w @param {number} h @param {Int32Array} data */
+    indexTexture(w, h, data) {
+      const t = /** @type {WebGLTexture} */ (gl.createTexture());
+      gl.bindTexture(gl.TEXTURE_2D, t);
+      gl.texStorage2D(gl.TEXTURE_2D, 1, gl.R32I, w, h);
+      gl.pixelStorei(gl.UNPACK_ALIGNMENT, 4);
+      gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, w, h, gl.RED_INTEGER, gl.INT, data);
+      for (const q of [gl.TEXTURE_MIN_FILTER, gl.TEXTURE_MAG_FILTER]) gl.texParameteri(gl.TEXTURE_2D, q, gl.NEAREST);
+      gl.bindTexture(gl.TEXTURE_2D, null);
+      return t;
+    },
+
+    /**
+     * Scatter a compact image's records (8 attachments) back to their pixels of target T (8 attachments): one point per
+     * compact texel; padding texels (index -1) are dropped. After FOORT-GPU's scatter pass (backendWebGL2.js).
+     * @param {RecordTarget} C compact image @param {WebGLTexture} index its index texture @param {RecordTarget} T
+     */
+    scatter(C, index, T) {
+      if (!scatterProg) scatterProg = buildPlain(SCATTER_VS, SCATTER_FS, 'scatter');
+      gl.bindFramebuffer(gl.FRAMEBUFFER, T.fbo);
+      gl.viewport(0, 0, T.w, T.h);
+      gl.disable(gl.SCISSOR_TEST);
+      gl.useProgram(scatterProg.prog);
+      gl.bindVertexArray(vao);
+      gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, index); gl.uniform1i(scatterProg.loc('uIndex'), 0);
+      for (let k = 0; k < 8; k++) { gl.activeTexture(gl.TEXTURE1 + k); gl.bindTexture(gl.TEXTURE_2D, C.tex[k]); gl.uniform1i(scatterProg.loc(`uC${k}`), 1 + k); }
+      gl.uniform4i(scatterProg.loc('uSc'), T.w, T.h, C.w, 0);
+      gl.drawArrays(gl.POINTS, 0, C.w * C.h);
+      for (let k = 0; k < 9; k++) { gl.activeTexture(gl.TEXTURE0 + k); gl.bindTexture(gl.TEXTURE_2D, null); }
+      gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+    },
   };
 }
 
@@ -265,3 +354,29 @@ export async function fenceDone(gl) {
 }
 
 /** @typedef {Awaited<ReturnType<typeof createTracer>>} Tracer */
+
+const SCATTER_VS = `#version 300 es
+precision highp float; precision highp int;
+uniform highp isampler2D uIndex;
+uniform ivec4 uSc;   // target width, height, compact width, 0
+flat out ivec2 vC;
+void main() {
+  int k = gl_VertexID;
+  ivec2 c = ivec2(k % uSc.z, k / uSc.z);
+  int p = texelFetch(uIndex, c, 0).x;
+  vC = c;
+  gl_PointSize = 1.0;
+  if (p < 0) { gl_Position = vec4(2.0, 2.0, 2.0, 1.0); return; }
+  vec2 ij = vec2(float(p % uSc.x), float(p / uSc.x));
+  gl_Position = vec4((ij + 0.5) / vec2(uSc.xy) * 2.0 - 1.0, 0.0, 1.0);
+}`;
+const SCATTER_FS = `#version 300 es
+precision highp float; precision highp int;
+uniform highp sampler2D uC0, uC1, uC2, uC3, uC4, uC5, uC6, uC7;
+flat in ivec2 vC;
+layout(location = 0) out vec4 o0; layout(location = 1) out vec4 o1; layout(location = 2) out vec4 o2; layout(location = 3) out vec4 o3;
+layout(location = 4) out vec4 o4; layout(location = 5) out vec4 o5; layout(location = 6) out vec4 o6; layout(location = 7) out vec4 o7;
+void main() {
+  o0 = texelFetch(uC0, vC, 0); o1 = texelFetch(uC1, vC, 0); o2 = texelFetch(uC2, vC, 0); o3 = texelFetch(uC3, vC, 0);
+  o4 = texelFetch(uC4, vC, 0); o5 = texelFetch(uC5, vC, 0); o6 = texelFetch(uC6, vC, 0); o7 = texelFetch(uC7, vC, 0);
+}`;

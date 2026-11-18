@@ -1,0 +1,12 @@
+kerr_static   face 128: emission L1 4.78e-2, s max rel 2.2e-7, sky px p50 0.42 p90 0.98 p99 1.59 (40743 px); cube 0.38 s
+kerr_static   face 256: emission L1 2.26e-2, s max rel 2.2e-7, sky px p50 0.39 p90 0.92 p99 1.48 (43918 px); cube 0.23 s
+kerr_static   face 384: emission L1 1.45e-2, s max rel 2.2e-7, sky px p50 0.35 p90 0.87 p99 1.42 (44978 px); cube 0.46 s
+kerr_orbit    face 128: emission L1 1.04e-1, s max rel 3.6e-7, sky px p50 0.47 p90 1.01 p99 1.50 (39526 px); cube 0.06 s
+kerr_orbit    face 256: emission L1 5.60e-2, s max rel 3.6e-7, sky px p50 0.42 p90 0.99 p99 1.46 (40959 px); cube 0.15 s
+kerr_orbit    face 384: emission L1 3.58e-2, s max rel 3.6e-7, sky px p50 0.35 p90 0.97 p99 1.45 (41419 px); cube 0.27 s
+kerr_fast_g2  face 128: emission L1 4.23e-2, s max rel 1.6e-6, sky px p50 0.49 p90 1.14 p99 1.73 (59534 px); cube 0.06 s
+kerr_fast_g2  face 256: emission L1 2.19e-2, s max rel 1.6e-6, sky px p50 0.47 p90 1.10 p99 1.67 (60729 px); cube 0.10 s
+kerr_fast_g2  face 384: emission L1 1.32e-2, s max rel 1.6e-6, sky px p50 0.43 p90 1.10 p99 1.67 (61131 px); cube 0.17 s
+kerr_fast_g5  face 128: emission L1 1.08e-1, s max rel 9.2e-6, sky px p50 0.49 p90 1.25 p99 1.83 (63614 px); cube 0.04 s
+kerr_fast_g5  face 256: emission L1 5.85e-2, s max rel 9.2e-6, sky px p50 0.29 p90 1.13 p99 1.77 (64433 px); cube 0.09 s
+kerr_fast_g5  face 384: emission L1 3.51e-2, s max rel 9.2e-6, sky px p50 0.15 p90 1.03 p99 1.72 (64633 px); cube 0.14 s

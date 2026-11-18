@@ -1,0 +1,68 @@
+[
+ {
+  "query": "spacetime=st3cr",
+  "path": "turn",
+  "seconds": 15,
+  "frames": {
+   "n": 598,
+   "median": 16.700000000000728,
+   "p10": 16.5,
+   "p90": 16.80000000000291,
+   "min": 15.399999999997817,
+   "max": 17.900000000001455,
+   "mean": 16.683946488294314
+  },
+  "refreshes": 1,
+  "lastRefresh": {
+   "wallMs": 1223.300000011921,
+   "rounds": 8,
+   "frames": 26,
+   "split": true,
+   "N": 256
+  }
+ },
+ {
+  "query": "spacetime=st3cr",
+  "path": "close",
+  "seconds": 15,
+  "frames": {
+   "n": 598,
+   "median": 16.69999999999709,
+   "p10": 16.5,
+   "p90": 16.900000000001455,
+   "min": 15.80000000000291,
+   "max": 50.099999999998545,
+   "mean": 16.90735785953177
+  },
+  "refreshes": 4,
+  "lastRefresh": {
+   "wallMs": 3604.900000035763,
+   "rounds": 8,
+   "frames": 128,
+   "split": true,
+   "N": 256
+  }
+ },
+ {
+  "query": "spacetime=st3cr",
+  "path": "flyby",
+  "seconds": 15,
+  "frames": {
+   "n": 598,
+   "median": 16.69999999999709,
+   "p10": 16.5,
+   "p90": 16.900000000001455,
+   "min": 15.69999999999709,
+   "max": 66.80000000000291,
+   "mean": 17.1314381270903
+  },
+  "refreshes": 13,
+  "lastRefresh": {
+   "wallMs": 1784.800000011921,
+   "rounds": 8,
+   "frames": 43,
+   "split": true,
+   "N": 256
+  }
+ }
+]

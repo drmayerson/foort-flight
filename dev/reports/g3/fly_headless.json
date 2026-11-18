@@ -1,0 +1,24 @@
+[
+ {
+  "query": "",
+  "path": "turn",
+  "seconds": 4,
+  "frames": {
+   "n": 234,
+   "median": 16.699999999999818,
+   "p10": 16.5,
+   "p90": 16.899999999999636,
+   "min": 15.5,
+   "max": 83.5,
+   "mean": 16.967948717948715
+  },
+  "refreshes": 1,
+  "lastRefresh": {
+   "wallMs": 249.19999998807907,
+   "rounds": 0,
+   "frames": 3,
+   "split": false,
+   "N": 256
+  }
+ }
+]

@@ -12,19 +12,15 @@ import { shipCamera, observerState } from './camera/shipCamera.js';
 import { createSpacetime } from './physics/spacetime.js';
 import { BakeClient } from '../vendor/foort-gpu/js/bake/client.js';
 import { fluidSpec, tableSpec, gpuTraceSetup } from '../vendor/foort-gpu/js/gpu/traceConfig.js';
-import { tierSettings } from '../vendor/foort-gpu/js/gpu/tiers.js';
 import { autoNoiseField, loadNoiseField } from '../vendor/foort-gpu/js/noise/noiseField.js';
 import { SKY_PICTURES } from '../vendor/foort-gpu/js/sky.js';
 import { summarize } from './gpu/timing.js';
+import { gameTier, EMISSION, R_BOUNDARY } from './render/defaults.js';
 
 const $ = (/** @type {string} */ id) => /** @type {HTMLInputElement} */ (document.getElementById(id));
 const q = new URLSearchParams(location.search);
 const DEG = Math.PI / 180;
 
-/** game defaults (DECISIONS G2): FOORT-GPU's B3 comparison disc (Johnson-SU in the circumferential radius) */
-export const EMISSION = { mu: 3, gamma: -1.5, sigma: 1, p: 3, fudge: 1, maxPasses: 0, circumferential: true };
-/** the trace boundary: far enough that escape directions are those at infinity for the sky (M) */
-export const R_BOUNDARY = 100;
 
 /** state defaults; every key is also a URL parameter and a control id */
 export const DEFAULTS = {
@@ -72,7 +68,7 @@ async function main() {
     /** @type {any} */
     const view = {
       metric: S.id, metricParams: S.params, camera: { r, theta: th, phi: 0, screen: 1 }, N: s.N, rBoundary: Math.max(1.01 * r, R_BOUNDARY),
-      path: 'auto', texelReuse: true, fluid: { xi: 1, betaR: 1, betaPhi: 1, model: 'banded' }, ...tierSettings(s.tier, mode),
+      path: 'auto', texelReuse: true, fluid: { xi: 1, betaR: 1, betaPhi: 1, model: 'banded' }, ...gameTier(s.tier, mode),
     };
     const ts = tableSpec(view);
     const tables = ts ? (await bakes.get(ts)).tables : undefined;
