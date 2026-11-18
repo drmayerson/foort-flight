@@ -13,7 +13,7 @@ const FAMILY = /** @type {Record<string, string>} */ ({ zamo: 'ZAMO', static: 's
  * @param {{pos: number[], g: number[][]}} tracer the camera in tracer coordinates
  * @param {number[]} uT the observer's 4-velocity (tracer coordinates)
  * @param {(d: number[]) => number} shift ship factor for a look direction (f, right, up)
- * @param {{fps: number, p90: number, refreshes: number, idle: boolean, last: any, staleness: any, paused: boolean, note: string, units: any}} st
+ * @param {{fps: number, p90: number, refreshes: number, idle: boolean, sharpening?: boolean, last: any, staleness: any, paused: boolean, note: string, units: any}} st
  */
 export function hudLines(free, tracer, uT, shift, st) {
   /** @type {import('./units.js').GameUnits} */
@@ -31,7 +31,7 @@ export function hudLines(free, tracer, uT, shift, st) {
     `r ${U.length(r)}   θ ${f(th * DEG, 1)}° (latitude ${f(90 - th * DEG, 1)}°)`,
     `riding with: ${FAMILY[free.family] ?? free.family}   v vs ZAMO ${f(v, 3)} c (γ ${f(gamma, 3)})`,
     `light ahead ×${f(ahead)}   behind ×${f(behind)}   sky average ×${f(avg)}`,
-    `${f(st.fps, 0)} fps (p90 ${f(st.p90, 1)} ms)   ${st.idle ? 'view up to date' : 'refreshing'}${st.last ? ` · last cubemap ${(st.last.wallMs / 1000).toFixed(2)} s` : ''}   speed ${f(free.speed, 2)} r/s`,
+    `${f(st.fps, 0)} fps (p90 ${f(st.p90, 1)} ms)   ${st.idle ? 'view up to date' : st.sharpening ? 'sharpening' : 'refreshing'}${st.last ? ` · cubemap ${st.last.N}² in ${(st.last.wallMs / 1000).toFixed(2)} s` : ''}   speed ${f(free.speed, 2)} r/s`,
   ];
   if (st.note) lines.push(`⚠ ${st.note}`);
   return lines;
@@ -101,7 +101,7 @@ export function hudPhysicalLines(o) {
     `thrust ${e(thrust)} c⁴/GM = ${e(U.g(thrust))} g${where}   level ${e(o.level)} (wheel)   Δv ${f(o.dv, 3)} c`,
     `light ahead ×${f(o.ahead)}   behind ×${f(o.behind)}   sky average ×${f(o.avg)}`,
     `tidal over 100 m: ${e(tidalG)} g${where}${tidalG > 1e3 ? '  ⚠ spaghettification' : ''}`,
-    `${f(o.fps, 0)} fps (p90 ${f(o.p90, 1)} ms)   ${o.idle ? 'view up to date' : 'refreshing'}${o.radii ? `   ${o.radii}` : ''}`,
+    `${f(o.fps, 0)} fps (p90 ${f(o.p90, 1)} ms)   ${o.idle ? 'view up to date' : o.sharpening ? 'sharpening' : 'refreshing'}${o.radii ? `   ${o.radii}` : ''}`,
   ];
   if (o.assist) lines.push(`▶ assist: ${o.assist}`);
   if (o.expert) lines.push(`E ${f(o.E, 9)}   L_z ${f(o.L, 9)}${Number.isFinite(o.Q) ? `   Q ${f(o.Q, 9)}` : ''}   |u·u+1| ${e(o.uu, 1)}   triad ${e(o.ortho, 1)}`);

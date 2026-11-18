@@ -21,12 +21,10 @@ try {
   for (const id of ids) {
     await page.evaluate((i) => window.__game.start(i), id);
     await page.waitForFunction(() => window.__game.renderer.hasCube(), null, { timeout: 60_000 });
-    await page.keyboard.press('m');
     await page.waitForTimeout(4000);
     const st = await page.evaluate(() => { const s = window.__game.state(); return { mode: s.mode, ended: s.ended, r: s.tracer?.pos?.[1], pred: s.predEvent }; });
     console.log(id, JSON.stringify(st));
     console.log(await page.evaluate(() => window.__game.hud()));
     await page.screenshot({ path: `reports/img/g6/${id}.png` });
-    await page.keyboard.press('m');
   }
 } finally { await browser.close(); server.kill(); }

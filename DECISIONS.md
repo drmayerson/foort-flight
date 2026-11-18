@@ -143,3 +143,5 @@ float32 and GPU conventions carried over here.
   - the one coarse fuzzball cubemap at the start of a scene is traced in one pass (no splitting, a few slow frames) instead of 8 read-back rounds: 0.35 s instead of 0.6–0.9 s.
 - 2026-11-18 — **CREDITS:** the sky pictures' terms are given as NASA's (not copyrighted) and ESA/Hubble's (CC BY 4.0) publishing terms; the exact source pages of these files were never recorded (bh-camera, FOORT-GPU), which CREDITS says.
 - 2026-11-18 — **Not done without the user's approval (plan G8):** the homepage link in `drmayerson.github.io`. Cross-device acceptance on Firefox and the phone needs the user's runs.
+- 2026-11-18 — **Map on by default, with a 3D pane** (user's feedback): the side view (ρ, z) is replaced by a turnable 3D view; the top view stays as the 2D equatorial slice. On phones the map is docked in the panel.
+- 2026-11-18 — **Sharpening when still** instead of a larger face size while moving: a 512² refresh takes ~2× as long as 256², which would double the view's lag in flight; when nothing changes the lag does not matter.

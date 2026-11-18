@@ -7,6 +7,9 @@ import { createShipIntegrator } from '../physics/ship.js';
 
 /** @typedef {import('../physics/spacetime.js').Spacetime} Spacetime @typedef {import('../physics/ship.js').ShipState} ShipState */
 
+/** points per integration step on the drawn path */
+const HERMITE = 8;
+
 export class Predictor {
   /** @param {Spacetime} S */
   constructor(S) {
@@ -35,11 +38,21 @@ export class Predictor {
     if (!this.cur) return;
     const t0 = performance.now();
     while (performance.now() - t0 < budgetMs && this.cur) {
-      // small slices (about one step each), so the time budget is kept to a step (G8: 1/300 of the horizon overshot it)
-      const res = this.I.advance(this.cur, this.horizonTau / 2000, [0, 0, 0], [0, 0, 0], { maxSteps: 4 });
-      this.cur = res.state;
-      if ((this.n = (this.n ?? 0) + 1) % 4 === 0) this.next.push([res.state.X[1], res.state.X[2], res.state.X[3]]);
-      if (res.event || res.state.tau - this.started >= this.horizonTau) {
+      // one adaptive step per call, towards the end of the horizon, so the time budget is kept to a step (2026-11-18:
+      // slices of 1/2000 of the horizon capped the step size; a prediction then took ~360 frames and, restarted every
+      // 300 ms, never finished: the map showed no predicted path)
+      const left = this.horizonTau - (this.cur.tau - this.started);
+      const a = this.cur;
+      const res = this.I.advance(a, left, [0, 0, 0], [0, 0, 0], { maxSteps: 1 });
+      const b = res.state;
+      // the steps are long (~20 per orbit): cubic Hermite points in between (dX/dtau = u) for a smooth curve
+      const h = b.tau - a.tau;
+      for (let k = 1; k <= HERMITE; k++) {
+        const t = k / HERMITE, h00 = 2 * t ** 3 - 3 * t * t + 1, h10 = t ** 3 - 2 * t * t + t, h01 = 1 - h00, h11 = t ** 3 - t * t;
+        this.next.push([1, 2, 3].map((i) => h00 * a.X[i] + h10 * h * a.u[i] + h01 * b.X[i] + h11 * h * b.u[i]));
+      }
+      this.cur = b;
+      if (res.event || res.done === 0 || res.state.tau - this.started >= this.horizonTau * (1 - 1e-9)) {
         this.points = this.next; this.event = res.event; this.cur = null;
       }
     }

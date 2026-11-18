@@ -1,5 +1,5 @@
 // @ts-check
-// The WebGPU capability report (caps.html, milestone G0): adapter, features, limits, f16 and timestamp support.
+// The capability report (caps.html, milestone G0; WebGL2 added 2026-11-18): the WebGL2 context the game uses, and the WebGPU adapter, features, limits, f16 and timestamp support.
 import { createGpu, gpuFailed, adapterInfo, RAISED_LIMITS } from './gpu/device.js';
 
 const $ = (/** @type {string} */ id) => /** @type {HTMLElement} */ (document.getElementById(id));
@@ -30,6 +30,29 @@ async function testF16(device) {
   } catch (e) { return `error: ${e}`; }
 }
 
+/**
+ * What the game uses (WebGL2, DECISIONS F12): the graphics card and driver as the browser reports them, the
+ * extensions the tracer and display need, and the limits that set the cubemap sizes.
+ */
+function webgl2Info() {
+  const gl = /** @type {WebGL2RenderingContext|null} */ (document.createElement('canvas').getContext('webgl2', { powerPreference: 'high-performance' }));
+  if (!gl) return { available: false };
+  const dbg = gl.getExtension('WEBGL_debug_renderer_info');
+  const ext = (/** @type {string} */ n) => !!gl.getExtension(n);
+  const out = {
+    available: true,
+    vendor: dbg ? gl.getParameter(dbg.UNMASKED_VENDOR_WEBGL) : gl.getParameter(gl.VENDOR),
+    renderer: dbg ? gl.getParameter(dbg.UNMASKED_RENDERER_WEBGL) : gl.getParameter(gl.RENDERER),
+    version: gl.getParameter(gl.VERSION), glsl: gl.getParameter(gl.SHADING_LANGUAGE_VERSION),
+    colorBufferFloat: ext('EXT_color_buffer_float'), floatLinear: ext('OES_texture_float_linear'), timerQuery: ext('EXT_disjoint_timer_query_webgl2'),
+    maxTextureSize: gl.getParameter(gl.MAX_TEXTURE_SIZE), maxDrawBuffers: gl.getParameter(gl.MAX_DRAW_BUFFERS), maxColorAttachments: gl.getParameter(gl.MAX_COLOR_ATTACHMENTS),
+    maxFragmentUniformVectors: gl.getParameter(gl.MAX_FRAGMENT_UNIFORM_VECTORS), maxTextureImageUnits: gl.getParameter(gl.MAX_TEXTURE_IMAGE_UNITS),
+    highpFloat: gl.getShaderPrecisionFormat(gl.FRAGMENT_SHADER, gl.HIGH_FLOAT)?.precision ?? 0,
+  };
+  gl.getExtension('WEBGL_lose_context')?.loseContext();
+  return out;
+}
+
 export async function collectCaps() {
   const nav = /** @type {any} */ (navigator);
   /** @type {any} */
@@ -37,7 +60,7 @@ export async function collectCaps() {
     page: 'foort-flight caps', date: new Date().toISOString(), userAgent: navigator.userAgent,
     userAgentData: nav.userAgentData ? { platform: nav.userAgentData.platform, mobile: nav.userAgentData.mobile, brands: nav.userAgentData.brands } : undefined,
     screen: { w: screen.width, h: screen.height, dpr: devicePixelRatio }, hardwareConcurrency: navigator.hardwareConcurrency,
-    webgl2: !!document.createElement('canvas').getContext('webgl2'),
+    webgl2: webgl2Info(),
     webgpu: { available: false },
   };
   const g = await createGpu();
@@ -78,8 +101,15 @@ const fmt = (v) => (v === undefined ? '–' : v >= 1 << 20 ? `${(v / (1 << 20)).
 async function main() {
   const r = await collectCaps();
   /** @type {any} */ (window).__caps = r;
-  const w = r.webgpu;
-  let html = row('WebGPU', w.available, w.available ? Object.values(w.info).join(' / ') || 'adapter info hidden by the browser' : w.reason);
+  const w = r.webgpu, g = r.webgl2;
+  let html = row('WebGL2 (used by the game)', g.available, g.available ? `${g.renderer} (${g.vendor})` : 'not available: the game cannot run here');
+  if (g.available) {
+    html += row('Float render targets', g.colorBufferFloat, g.colorBufferFloat ? 'EXT_color_buffer_float' : 'missing: the tracer needs it');
+    html += row('GPU timer queries', g.timerQuery, g.timerQuery ? 'available' : 'not offered: frame budgets use fences only');
+    html += row('Draw buffers', g.maxDrawBuffers >= 8, `${g.maxDrawBuffers} (8 needed to split long fuzzball rays)`);
+    html += row('Texture size', g.maxTextureSize >= 4096, `${g.maxTextureSize} (a 512² cubemap needs 1536)`);
+  }
+  html += row('WebGPU (not used by the game)', w.available, w.available ? Object.values(w.info).join(' / ') || 'adapter info hidden by the browser' : w.reason);
   if (w.attempts) html += row('Adapter requests', w.available ? w.featureLevel === 'core' : false, w.attempts.join('; ') + (w.available && w.featureLevel === 'compatibility' ? ' — compatibility mode only (OpenGL ES level): fewer features' : ''));
   if (w.available) {
     const L = w.limits.device;
@@ -92,7 +122,6 @@ async function main() {
     html += row('Raised limits', w.raisedLimitsFailed.length === 0, w.raisedLimitsFailed.length ? `refused: ${w.raisedLimitsFailed.join(', ')}` : 'all granted');
     html += row('Canvas format', null, w.preferredCanvasFormat);
   }
-  html += row('WebGL2', null, r.webgl2 ? 'available (the FOORT-GPU viewer works here)' : 'not available');
   html += row('Browser', null, navigator.userAgent);
   $('summary').innerHTML = html;
   if (w.available) {

@@ -513,3 +513,14 @@ Open items from 2A (DECISIONS, PROGRESS):
 - quality: soft beads along the shadow's edge and texel-sized stars inside the fuzzball's cap (cubemap texels at lensing discontinuities); cross-fading between cubemaps; refresh priority from a per-pixel error estimate; staleness and direct-vs-cubemap debug views in the game's expert panel;
 - the long-ray splitting is option 1 (game-side, as chosen); option 2 (an upstream "resume in place" mode in FOORT-GPU) stays possible if wanted;
 - the sky pictures' exact source pages, to confirm their licences file by file.
+
+## After 2A: first device feedback (2026-11-18)
+
+User's report: laptop (Firefox, Windows; a Teams call running) 60 fps, p90 33 ms; phone (Android, Chrome 157) 60 fps, p90 16.8 ms. "The images look a bit pixelated, e.g. Kerr around the photon ring"; "hard to get the hang of what is going on"; the map should be on by default, show where you are going (dotted), and be 3D (a 2D slice and a 3D trajectory).
+
+- **The map's predicted path was never shown (bug):** the prediction was integrated in slices of 1/2000 of its horizon (~360 frames of 0.5 ms for three orbits) and restarted every 300 ms, so it never finished. Now one adaptive step per call (cubic Hermite points in between for a smooth curve): 3 orbits at 10 M in 5-30 ms of CPU (8-60 frames); a new one starts when the last is finished (at most every 300 ms; after 2 s regardless). Until the first is done, the part computed so far is drawn.
+- **Map:** on at the start; on a phone it sits below the view at the top of the panel (not over the touch sticks). Two panes: the equatorial plane from above (2D slice; drag pans) and a 3D view (drag turns; horizon and ergosurface as filled outlines, disc, photon-orbit and ISCO circles split into far and near halves, spin axis, distance rings, the ship with a drop line to the equatorial plane; paths behind the horizon faint). Legend; in free-camera mode a hint to board the ship.
+- **Sharper when still:** when nothing changes the renderer traces one cubemap at twice the face size (512² on a desktop, 256² on a phone) if the last one at the normal size took < 0.4 s (fuzzball < 1.5 s); it is dropped as soon as the ship moves on. Laptop (Chrome, headless): 256² in 0.35 s, 512² in 0.63 s; a circular orbit counts as still (t and φ symmetries). The beads along the photon ring are much reduced (`dev/reports/img/feedback/ring-256.png` vs `ring-512.png`). While moving the view is as before.
+- **caps.html** now reports the WebGL2 context the game uses (GPU and driver string, float targets, timer queries, draw buffers, texture size) first; WebGPU is marked "not used by the game".
+- HUD: "sharpening" state and the face size of the last cubemap.
+- Tests: unit 72/72, e2e g3/g4/g6/g7 18/18 (the map test now expects the map open at the start).

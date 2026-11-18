@@ -59,7 +59,8 @@ export class CubemapTracer {
     const k = `${N}:${T.tex.length}`;
     if (!this.pool.has(k)) this.pool.set(k, []);
     const free = /** @type {RecordTarget[]} */ (this.pool.get(k));
-    if (free.length < 2) free.push(T); else this.tracer.freeTarget(T);
+    // large atlases (512: 150-200 MB) are not kept: a sharpened cubemap is traced rarely
+    if (free.length < (N > 256 ? 0 : 2)) free.push(T); else this.tracer.freeTarget(T);
   }
 
   /** cancel what is being traced (a newer refresh supersedes it) */

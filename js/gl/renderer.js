@@ -32,11 +32,13 @@ import { CUBE_R_BOUNDARY } from './cubemap.js';
  * @property {number} exposure    multiplier
  * @property {number} starBrightness
  * @property {boolean} inset      show the cubemap being traced
+ * @property {boolean} refine     trace a sharper cubemap (twice the face size) while nothing changes
+ * @property {number} fineMax     the largest face size of a sharpened cubemap
  * @property {{mu:number, gamma:number, sigma:number, p:number, fudge:number, maxPasses:number, circumferential:boolean}} [em]
  */
 
 export const RENDER_DEFAULTS = /** @type {RenderSettings} */ ({
-  faceN: 256, tier: 'normal', fov: 75 * Math.PI / 180, colorMode: 1, skyMode: 1, sigmaN: 0.6, T0: 4500, exposure: 1, starBrightness: 1, inset: false,
+  faceN: 256, tier: 'normal', fov: 75 * Math.PI / 180, colorMode: 1, skyMode: 1, sigmaN: 0.6, T0: 4500, exposure: 1, starBrightness: 1, inset: false, refine: true, fineMax: 512,
 });
 
 /** @param {HTMLCanvasElement} canvas */
@@ -58,6 +60,8 @@ export async function createRenderer(canvas) {
   let latest = null;   // the ship state of the last frame (the refresh loop traces for it)
   let settings = { ...RENDER_DEFAULTS };
   let loopGen = 0, refreshes = 0, idle = false, noiseName = '';
+  /** a sharpened cubemap is being traced (cancelled as soon as the ship moves on) */
+  let tracingFine = false;
   /** @type {any} */
   let lastRefresh = null;
   /** recent cubemap refreshes (G8 acceptance timings) @type {any[]} */
@@ -67,25 +71,44 @@ export async function createRenderer(canvas) {
   /** photo mode (G7): a direct trace of the screen at full resolution, shown instead of the cubemap @type {any} */
   let photo = null;
   const nextFrame = () => new Promise((r) => requestAnimationFrame(() => r(null)));
+  /**
+   * The face size of a sharpened cubemap, or 0: twice the face size (at most settings.fineMax) if the last cubemap of
+   * this spacetime at the face size took less than ~0.4 s (fuzzball: 1.5 s) to trace here, so that the sharp one
+   * takes a few seconds at most.
+   */
+  const fineN = () => {
+    const fine = Math.min(2 * settings.faceN, settings.fineMax);
+    if (!settings.refine || fine <= settings.faceN || !S) return 0;
+    const last = history.filter((x) => x.spacetime === S?.id && x.N === settings.faceN).at(-1);
+    return last && last.wallMs - (last.setupMs ?? 0) < (S.id === 'st3cr' ? 1500 : 400) ? fine : 0;
+  };
 
   async function refreshLoop(/** @type {number} */ gen) {
     while (gen === loopGen) {
       if (!latest || !S) { await nextFrame(); continue; }
       const st = latest;
-      if (current && current.N === settings.faceN) {
+      let N = current ? settings.faceN : Math.max(32, settings.faceN / 4);
+      if (current && current.N >= settings.faceN) {
         const m = shipToReference(st.g, st.frame, current.ref.gdd, current.ref.frame, current.ref.v);
         const sl = staleness({ r: st.pos[1], theta: st.pos[2] }, { r: current.ref.pos[1], theta: current.ref.pos[2] }, m.M);
-        if (sl.pos < 1e-5 && sl.vel < 1e-5) { idle = true; await nextFrame(); continue; }
+        if (sl.pos < 1e-5 && sl.vel < 1e-5) {
+          // nothing has changed: sharpen (2026-11-18, the photon ring looked pixelated): one cubemap at twice the face
+          // size, when this device traced the last one fast enough; shown until the ship moves on
+          const fine = fineN();
+          if (!fine || current.N >= fine) { idle = true; await nextFrame(); continue; }
+          N = fine; tracingFine = true;
+        }
       }
       idle = false;
       let cm;
       try {
         const ref = referenceFrame(st.g, st.frame);
-        const N = current ? settings.faceN : Math.max(32, settings.faceN / 4);
         // long fuzzball rays are split across frames for the continuous refresh; the one coarse cubemap at the start of
         // a scene is traced in one pass (a few slow frames, but no read-back rounds: G8, coarse in < 0.5 s)
         cm = await cubes.trace(S, { pos: st.pos, frame: ref.frame, v: ref.v }, { N, tier: settings.tier, split: S.id === 'st3cr' && N >= 128 });
+        tracingFine = false;
       } catch (e) {
+        tracingFine = false;
         // e.g. no ZAMO (inside a horizon): the caller keeps the ship out; wait and retry
         console.warn('cubemap refresh failed', e);
         await nextFrame();
@@ -194,6 +217,8 @@ export async function createRenderer(canvas) {
         }
         const sl = staleness({ r: ship.pos[1], theta: ship.pos[2] }, { r: current.ref.pos[1], theta: current.ref.pos[2] }, m.M);
         lastView = { m, staleness: sl, refT: m.refT };
+        // the ship moved on while a sharpened cubemap was traced: drop it, the refresh at the normal size goes first
+        if (tracingFine && (sl.pos >= 1e-5 || sl.vel >= 1e-5)) { tracingFine = false; cubes.cancel(); }
       } else {
         gl.bindFramebuffer(gl.FRAMEBUFFER, null);
         gl.viewport(0, 0, w, h);
@@ -219,7 +244,7 @@ export async function createRenderer(canvas) {
       return 1 / (Er * pt);
     },
     history: () => history.slice(),
-    stats: () => ({ refreshes, idle, lastRefresh, cube: current ? { N: current.N, ref: current.ref.pos } : null, sched: sched.stats(), exposure: display.exposure(), view: lastView }),
+    stats: () => ({ refreshes, idle, sharpening: tracingFine, N: current?.N ?? 0, lastRefresh, cube: current ? { N: current.N, ref: current.ref.pos } : null, sched: sched.stats(), exposure: display.exposure(), view: lastView }),
     hasCube: () => !!current,
   };
   return api;

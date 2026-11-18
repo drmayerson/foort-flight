@@ -61,10 +61,12 @@ test('engine and assist keys; the map; leaving and boarding', async ({ page }) =
   await page.keyboard.press('2');
   await expect(page.locator('#hud')).toContainText('point prograde', { timeout: 3000 });
   await page.keyboard.press('2');
-  await page.keyboard.press('m');
+  // the map is on at the start; M hides and shows it
   await expect(page.locator('#map')).toBeVisible();
   await page.keyboard.press('m');
   await expect(page.locator('#map')).toBeHidden();
+  await page.keyboard.press('m');
+  await expect(page.locator('#map')).toBeVisible();
   // pause first: after the burn the orbit is eccentric and r changes while the test clicks
   await page.locator('#view').focus();
   await page.keyboard.press('p');

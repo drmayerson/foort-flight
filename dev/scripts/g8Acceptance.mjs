@@ -63,7 +63,7 @@ try {
   { const h = await hist(); const i = h.findLastIndex((x) => x.spacetime === 'st3cr' && x.N < 256); out.fuzzball.coarseWarmMs = h[i]?.wallMs; }
   // ship CPU: parking orbit with the map open
   await page.evaluate(() => window.__game.start('parking-orbit'));
-  await page.keyboard.press('m');
+  // (the map is open from the start)
   await page.waitForTimeout(4000);
   out.shipCpu = await page.evaluate(() => window.__game.shipCpu());
   out.predictionCpu = await page.evaluate(() => window.__game.predCpu());

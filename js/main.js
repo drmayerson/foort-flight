@@ -38,7 +38,7 @@ let autoFace = PHONE ? 128 : 256;
 /** renderer settings from the game settings @param {Record<string, any>} s */
 const renderSettings = (s) => ({
   faceN: s.faceN === 'auto' ? autoFace : Number(s.faceN), tier: s.tier, fov: Number(s.fov) * DEG, colorMode: Number(s.color), skyMode: Number(s.sky), sigmaN: Number(s.sigmaN),
-  T0: Number(s.T0), exposure: Number(s.exposure), starBrightness: Number(s.starBrightness), inset: !!s.inset,
+  T0: Number(s.T0), exposure: Number(s.exposure), starBrightness: Number(s.starBrightness), inset: !!s.inset, fineMax: PHONE ? 256 : 512,
   em: { mu: Number(s.mu), gamma: Number(s.gamma), sigma: Number(s.sigma), p: 3, fudge: 1, maxPasses: 0, circumferential: true },
 });
 
@@ -78,7 +78,11 @@ async function main() {
   };
   loadPicture();
   const map = createMap(/** @type {HTMLCanvasElement} */ ($('map')));
-  let mapOn = false;
+  // the map is on at the start (2026-11-18, user's request); on a phone it sits below the view, at the top of the panel,
+  // so that it does not cover the touch sticks
+  let mapOn = true;
+  if (PHONE) { $('map').classList.add('docked'); $('side').prepend($('map')); }
+  $('map').hidden = false;
 
   const resize = () => {
     const r = canvas.getBoundingClientRect(), dpr = Math.min(window.devicePixelRatio || 1, 1.5);
@@ -290,7 +294,9 @@ async function main() {
       const pos = S.toTracer(s.X);
       tr = { pos, frame: frameToTracer(S, s.X, { u: s.u, f: s.e[0], right: s.e[1], up: s.e[2] }), g: S.gTracer(pos[1], pos[2]) };
       if (!ended) {
-        if (now - predT > 300) { predT = now; predictor.restart(s); }
+        // a new prediction once the last one is finished (and at most every 300 ms); one still unfinished after 2 s is
+        // restarted from the current state (the engines changed the path meanwhile)
+        if ((!predictor.cur && now - predT > 300) || now - predT > 2000) { predT = now; predictor.restart(s); }
         const cp = performance.now();
         predictor.work(0.5);
         predCpu.push(performance.now() - cp); if (predCpu.length > 240) predCpu.shift();
@@ -359,12 +365,12 @@ async function main() {
             tau: s.tau, pos: tr.pos, dtdtau: uT[0], warp: WARPS[phys.warpIdx], warpLimited: phys.lastWarp < WARPS[phys.warpIdx] - 1e-9, paused,
             v: Math.sqrt(Math.max(0, 1 - 1 / (gam * gam))), gamma: gam, orbit, acc: phys.lastAcc, level: phys.level, dv: s.dv,
             ahead: shift([1, 0, 0]), behind: shift([-1, 0, 0]), avg: [[1, 0, 0], [-1, 0, 0], [0, 1, 0], [0, -1, 0], [0, 0, 1], [0, 0, -1]].map(shift).reduce((a, b) => a + b, 0) / 6,
-            tidal, fps: 1000 / iv.median, p90: iv.p90, idle: rs.idle,
+            tidal, fps: 1000 / iv.median, p90: iv.p90, idle: rs.idle, sharpening: rs.sharpening,
             radii: R ? `photon orbit ${R.photonPro.toFixed(2)} M, ISCO ${R.iscoPro.toFixed(2)} M (prograde)` : '',
             assist: phys.assist ? phys.assistStatus : '', expert: !!settings.__expert, E: inv.E, L: inv.L, Q: inv.Q, uu: inv.uu, ortho: inv.ortho, note,
           });
         } else {
-          lines = hudLines(free, tr, /** @type {any} */ (lastFrame).uT, shift, { units: units(), fps: 1000 / iv.median, p90: iv.p90, refreshes: rs.refreshes, idle: rs.idle, last: rs.lastRefresh, staleness: rs.view?.staleness, paused, note });
+          lines = hudLines(free, tr, /** @type {any} */ (lastFrame).uT, shift, { units: units(), fps: 1000 / iv.median, p90: iv.p90, refreshes: rs.refreshes, idle: rs.idle, sharpening: rs.sharpening, last: rs.lastRefresh, staleness: rs.view?.staleness, paused, note });
         }
         $('hud').textContent = lines.join('\n');
         note = '';
@@ -380,8 +386,11 @@ async function main() {
       let vel = null;
       if (mode === 'physical' && phys) { const u = phys.ship.u; const n = Math.hypot(u[1], u[2], u[3]); vel = n > 0 ? [u[1] / n, u[2] / n, u[3] / n] : null; }
       const R = S.id === 'kerr' ? kerrRadii(S.params.a) : null;
-      map.draw(S, { X, vel, pred: mode === 'physical' ? predictor.points : [], predEvent: predictor.event, trail: mode === 'physical' ? predictor.trail : [],
-        discIn: R ? Math.sqrt(R.iscoPro ** 2 + S.params.a ** 2) : 0.02, discOut: Number(settings.mu) + 5 * Number(settings.sigma), kmPerM: units().kmPerM });
+      // until the first prediction is finished, the part computed so far
+      const pred = mode !== 'physical' ? [] : predictor.points.length ? predictor.points : predictor.next;
+      map.draw(S, { X, vel, pred, predEvent: predictor.points.length ? predictor.event : '', trail: mode === 'physical' ? predictor.trail : [],
+        discIn: R ? Math.sqrt(R.iscoPro ** 2 + S.params.a ** 2) : 0.02, discOut: Number(settings.mu) + 5 * Number(settings.sigma), kmPerM: units().kmPerM,
+        hint: mode === 'physical' ? '' : 'free camera: no orbit to show. Board the ship (side panel) to see where you are going.' });
     }
     if (now - saveT > 2000) { saveT = now; saveState(settings, { spacetime: settings.spacetime, ...free }); }
     requestAnimationFrame(frame);
