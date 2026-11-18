@@ -1,0 +1,26 @@
+/* the game page: the view fills the window left of a scrolling side panel; on narrow screens the panel goes below */
+body.game { margin: 0; height: 100vh; height: 100dvh; display: flex; overflow: hidden; background: #000; }
+#stage { position: relative; flex: 1 1 auto; min-width: 0; }
+#view { position: absolute; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; outline: none; cursor: crosshair; }
+#hud { position: absolute; left: 12px; top: 10px; margin: 0; padding: 6px 10px; font: 12px/1.45 ui-monospace, SFMono-Regular, Consolas, monospace;
+  color: #dfe7f3; background: rgba(5, 8, 14, 0.55); border-radius: 6px; pointer-events: none; white-space: pre; max-width: calc(100% - 24px); overflow: hidden; }
+#credit { position: absolute; right: 12px; bottom: 8px; font-size: 11px; pointer-events: none; }
+.overlay { position: absolute; inset: 8% 10%; overflow: auto; background: rgba(10, 13, 20, 0.94); border: 1px solid var(--line); border-radius: 10px; padding: 16px 22px; }
+.overlay table { width: auto; }
+#side { flex: 0 0 300px; overflow-y: auto; background: var(--panel); border-left: 1px solid var(--line); padding: 10px 14px; }
+#side h1 { font-size: 1.2rem; margin: 2px 0 6px; }
+#side fieldset { border: 1px solid var(--line); border-radius: 8px; margin: 10px 0; padding: 6px 10px 8px; }
+#side legend { color: var(--muted); font-size: 12px; padding: 0 4px; }
+label.ctl { display: grid; grid-template-columns: 1fr; gap: 2px; margin: 6px 0; font-size: 13px; }
+label.ctl input[type=range] { width: 100%; }
+label.ctl output { font-size: 12px; color: var(--muted); }
+label.ctl select { background: var(--bg); color: var(--fg); border: 1px solid var(--line); border-radius: 6px; padding: 3px 4px; font: inherit; }
+label.expert-toggle { display: flex; gap: 6px; align-items: center; }
+button.link { background: none; border: none; color: var(--accent); padding: 0; text-decoration: underline; cursor: pointer; font: inherit; }
+#side footer { font-size: 12px; margin-top: 16px; }
+@media (max-width: 760px) {
+  body.game { flex-direction: column; }
+  #stage { flex: 0 0 62vh; }
+  #side { flex: 1 1 auto; border-left: none; border-top: 1px solid var(--line); }
+  #hud { font-size: 10px; }
+}

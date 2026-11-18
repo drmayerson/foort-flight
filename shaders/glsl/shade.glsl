@@ -110,13 +110,16 @@ float hash1(vec3 p) { p = fract(p * 0.3183099 + vec3(0.71, 0.113, 0.419)); p *= 
 vec4 hash4(vec3 p) { return vec4(hash1(p), hash1(p + 13.1), hash1(p + 27.7), hash1(p + 41.3)); }
 
 // procedural stars on the sphere: three layers of cells on a cube; one star at most per cell
-vec3 stars(vec3 d, float s) {
+// starsW: sigW > 0 widens the stars to that angular radius at the same total flux (cubemap texels whose escape
+// directions are unrelated: a star then covers its texel softly instead of popping as a texel-sized square)
+vec3 starsW(vec3 d, float s, float sigW) {
   vec3 a = abs(d);
   vec2 uv; float face; float m;
   if (a.x >= a.y && a.x >= a.z) { uv = d.yz / a.x; face = d.x > 0.0 ? 0.0 : 1.0; m = a.x; }
   else if (a.y >= a.z) { uv = d.xz / a.y; face = d.y > 0.0 ? 2.0 : 3.0; m = a.y; }
   else { uv = d.xy / a.z; face = d.z > 0.0 ? 4.0 : 5.0; m = a.z; }
-  float sig = max(uSkyCam.z, 4e-4);            // star radius ~ a pixel
+  float sig0 = max(uSkyCam.z, 4e-4);           // star radius ~ a pixel
+  float sig = max(sig0, sigW), dim = (sig0 * sig0) / (sig * sig);
   vec3 col = vec3(0.0);
   for (int L = 0; L < 3; L++) {
     float K = 24.0 * pow(3.0, float(L));
@@ -127,7 +130,7 @@ vec3 stars(vec3 d, float s) {
     float dist = length(uv - p) * m * m;        // ~ angle on the sphere (gnomonic)
     float flux = pow(h.w, 8.0) * pow(0.25, float(L)) + 0.002;
     float T = 2600.0 + 26000.0 * pow(hash1(vec3(cell, face + 91.0)), 3.0);
-    col += flux * exp(-0.5 * dist * dist / (sig * sig)) * bb(s * T);
+    col += dim * flux * exp(-0.5 * dist * dist / (sig * sig)) * bb(s * T);
   }
   // a faint glow band (a galaxy seen edge-on), 5000 K
   vec3 n = normalize(vec3(0.3, 0.5, 0.81));
@@ -135,6 +138,7 @@ vec3 stars(vec3 d, float s) {
   col += 0.004 * band * bb(5000.0 * s);
   return col * pow(s, 4.0);
 }
+vec3 stars(vec3 d, float s) { return starsW(d, s, 0.0); }
 vec3 picture(vec3 d, float s) {
   vec2 n = vec2(d.y, -uSkyCam.y * d.x + uSkyCam.x * d.z);
   vec2 uv = 0.5 + vec2(n.x, n.y * uSkyP.z) / (2.0 * uSkyP.y);

@@ -2,27 +2,31 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>FOORT Flight</title>
 <link rel="icon" href="data:,">
 <link rel="stylesheet" href="./style.css">
+<link rel="stylesheet" href="./game.css">
 </head>
-<body>
-<main>
-  <h1>FOORT Flight</h1>
-  <p>Fly a spaceship around a spinning black hole or a fuzzball, with the view ray traced in real time:
-    gravitational lensing, redshift, Doppler shift, aberration and the finite speed of light.</p>
-  <p class="muted">In development (Stage 2A, milestone G3). The flight itself is not here yet.</p>
-  <div id="gpu" class="card">Checking WebGL2…</div>
-  <ul>
-    <li><a href="./cubemap.html">Cubemap renderer (G3): fly scripted paths around a black hole or fuzzball at full frame rate</a></li>
-    <li><a href="./observer.html">Observer view (G2): any observer, redshift, Doppler, aberration, blackbody disc and stars</a></li>
-    <li><a href="./tracer.html">Tracer test (G1): the ray tracer in the game's frame loop</a></li>
-    <li><a href="./caps.html">GPU capabilities of this device</a></li>
-    <li><a href="./latency.html">GPU latency test (WebGPU and WebGL2)</a></li>
-    <li><a href="https://drmayerson.github.io/foort-gpu/">FOORT-GPU</a>, the black-hole and fuzzball viewer this game builds on</li>
-  </ul>
-</main>
+<body class="game">
+<div id="stage">
+  <canvas id="view" tabindex="0" aria-label="the view from the ship"></canvas>
+  <pre id="hud" aria-live="off"></pre>
+  <div id="credit" class="muted"></div>
+  <div id="help" class="overlay" hidden></div>
+  <div id="fatal" class="overlay" hidden></div>
+</div>
+<aside id="side">
+  <header>
+    <h1>FOORT Flight</h1>
+    <div class="row"><button id="helpBtn" title="help (?)">?</button><button id="restart" title="back to the start position">Start position</button><button id="share">Copy link</button><span id="shareNote" class="muted"></span></div>
+  </header>
+  <div id="panel"></div>
+  <footer class="muted">
+    <p>Light rays traced in real time on your GPU, after <a href="https://drmayerson.github.io/foort-gpu/">FOORT-GPU</a>. Free mode (milestone G4); the physical spaceship follows.</p>
+    <p><a href="./about.html">About and test pages</a> · <button id="reset" class="link">Reset all settings</button></p>
+  </footer>
+</aside>
 <script type="module" src="./js/main.js"></script>
 </body>
 </html>

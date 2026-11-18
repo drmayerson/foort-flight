@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FOORT Flight — about</title>
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="./style.css">
+</head>
+<body>
+<main>
+  <h1>FOORT Flight — about and test pages</h1>
+  <p><a href="./">← Fly</a></p>
+  <p>Fly a spaceship around a spinning black hole or a fuzzball, with the view ray traced in real time:
+    gravitational lensing, redshift, Doppler shift, aberration and the finite speed of light.</p>
+  <p class="muted">In development (Stage 2A). Free flight is on the <a href="./">main page</a>; the milestone test pages are below.</p>
+  <div id="gpu" class="card">Checking WebGL2…</div>
+  <ul>
+    <li><a href="./cubemap.html">Cubemap renderer (G3): fly scripted paths around a black hole or fuzzball at full frame rate</a></li>
+    <li><a href="./observer.html">Observer view (G2): any observer, redshift, Doppler, aberration, blackbody disc and stars</a></li>
+    <li><a href="./tracer.html">Tracer test (G1): the ray tracer in the game's frame loop</a></li>
+    <li><a href="./caps.html">GPU capabilities of this device</a></li>
+    <li><a href="./latency.html">GPU latency test (WebGPU and WebGL2)</a></li>
+    <li><a href="https://drmayerson.github.io/foort-gpu/">FOORT-GPU</a>, the black-hole and fuzzball viewer this game builds on</li>
+  </ul>
+</main>
+<script type="module" src="./js/aboutPage.js"></script>
+</body>
+</html>

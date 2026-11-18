@@ -41,6 +41,8 @@ Tx shadeTexel(ivec2 q, float s) {
 }
 
 vec3 skyAt(vec3 d, float s) { return uView.y == 1 ? uSkyP.w * stars(d, s) : uView.y == 2 ? picture(d, s) : vec3(0.0); }
+// a texel's own sky when the 4 texels disagree: stars widened to the texel's angle (2 / N)
+vec3 skyTexel(vec3 d, float s) { return uView.y == 1 ? uSkyP.w * starsW(d, s, 1.0 / float(uAtlas.x)) : uView.y == 2 ? picture(d, s) : vec3(0.0); }
 
 void main() {
   vec2 ndc = (gl_FragCoord.xy - uDst.xy) / uDst.zw * 2.0 - 1.0;
@@ -80,10 +82,10 @@ void main() {
     dEsc = normalize(w.x * t00.dir + w.y * t10.dir + w.z * t01.dir + w.w * t11.dir);
     if (uView.y > 0) sky = skyAt(dEsc, s);
   } else if (uView.y > 0) {
-    if (t00.esc) sky += w.x * skyAt(t00.dir, s);
-    if (t10.esc) sky += w.y * skyAt(t10.dir, s);
-    if (t01.esc) sky += w.z * skyAt(t01.dir, s);
-    if (t11.esc) sky += w.w * skyAt(t11.dir, s);
+    if (t00.esc) sky += w.x * skyTexel(t00.dir, s);
+    if (t10.esc) sky += w.y * skyTexel(t10.dir, s);
+    if (t01.esc) sky += w.z * skyTexel(t01.dir, s);
+    if (t11.esc) sky += w.w * skyTexel(t11.dir, s);
   }
   if (uView.w == 1) {
     outColor = interp ? vec4(I, s, acos(clamp(dEsc.z, -1.0, 1.0)), atan(dEsc.y, dEsc.x)) : vec4(I, s, -1.0, 0.0);

@@ -359,3 +359,32 @@ Plan acceptance (laptop): Kerr cubemap 6 × 256² ≤ 1 s → 0.12–0.25 s ✓;
 - Inside the fuzzball's cap neighbouring texels escape in unrelated directions (chaos), so stars there show as texel-sized squares (colour blending fallback). Candidates for G7: a finer face for the cap's solid angle, or drawing chaotic texels' sky as a smooth average.
 - Not yet: cross-fading between cubemaps; refresh priority from a per-pixel error estimate (texel Jacobians); debug views for staleness and direct-vs-cube difference on the page (the numbers come from `g3Compare.mjs`).
 - Phone and Firefox runs of `cubemap.html` (published with this merge).
+
+## G4 — Free mode (2026-11-18)
+
+Branch `g4-free-mode`.
+
+### Delivered
+
+- **The game page** (`index.html`, `js/main.js`, `game.css`): the view fills the window left of a scrolling settings panel (below it on phones); HUD over the view; help overlay (?), shown once on the first visit; "Start position", "Copy link", "Reset all settings". The former landing page is `about.html`.
+- **Free flight** (`js/game/freeMode.js`): move anywhere, look anywhere, ride with a ZAMO, a static observer or a circular orbit (with fallbacks and their reasons), clocks τ and t; kept out of the Kerr horizon and away from the fuzzball's singular sources, into the cap allowed.
+- **Controls** (`js/game/controls.js`): keyboard + mouse (pointer lock or drag), gamepad, touch sticks.
+- **HUD** (`js/game/hud.js`): τ, t, dt/dτ; r, θ, latitude; the observer and its speed relative to the ZAMO; the light shift ahead, behind and averaged over the sky; fps and frame p90; cubemap state; speed.
+- **Panels from one control list, persistence and links** (`js/ui/`).
+- **Renderer module** (`js/gl/renderer.js`) shared with later milestones.
+
+### Tests
+
+| suite | result |
+|---|---|
+| Vitest | 53/53 (unchanged) |
+| Playwright | 21/21. New (G4): flying forward with W (r 15 → < 14.5 M in 0.8 s) at > 45 fps with the HUD; the static observer refused at r = 1.9 on the equator (ergoregion, a = 0.9: ZAMO shown, reason in the HUD), accepted at 6 M; the horizon stops the camera (r stays above 1.05 r₊); settings and camera survive a reload, and the copied link reproduces the camera; the expert panel adds its controls; switching to the fuzzball shows the λ slider and refreshes the cubemap. The G0 tests now check `about.html` |
+| type check | clean |
+
+Smoke run (`dev/scripts/g4Smoke.mjs`, Chrome, 1280 × 800): 60 fps (p90 16.8 ms) while flying in; HUD: ZAMO at 11.6 M, dt/dτ = 1.099, sky blueshift ×1.099 (= 1/α).
+
+### Notes
+
+- Free mode is kinematic: the HUD's "v vs ZAMO" is the chosen observer's speed (0 for the ZAMO), not the camera's coordinate motion.
+- A few soft beads remain along the shadow's edge (texel blending at a lensing discontinuity); for G7's quality work.
+- Device checks (Firefox, phone, touch) on the published page are welcome but not blocking.

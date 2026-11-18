@@ -1,8 +1,8 @@
 // G0 end-to-end tests in Chrome with WebGPU: the landing page, caps.html, latency.html, and the no-WebGPU page.
 import { test, expect } from '@playwright/test';
 
-test('index reports WebGL2 ready (plan v1.1)', async ({ page }) => {
-  await page.goto('./');
+test('about.html reports WebGL2 ready (plan v1.1)', async ({ page }) => {
+  await page.goto('./about.html');
   await expect(page.locator('body')).toHaveAttribute('data-gl', 'ready', { timeout: 30_000 });
   await expect(page.locator('#gpu')).toContainText('WebGL2 is ready');
 });
@@ -12,7 +12,7 @@ test('without float render targets the page explains why and links to FOORT-GPU'
     const orig = WebGL2RenderingContext.prototype.getExtension;
     WebGL2RenderingContext.prototype.getExtension = function (n) { return n === 'EXT_color_buffer_float' ? null : orig.call(this, n); };
   });
-  await page.goto('./');
+  await page.goto('./about.html');
   await expect(page.locator('body')).toHaveAttribute('data-gl', 'missing');
   await expect(page.locator('#gpu')).toContainText('cannot run here');
   await expect(page.locator('#gpu a[href*="foort-gpu"]')).toHaveCount(1);
@@ -24,7 +24,7 @@ test('without WebGL2 the page explains why', async ({ page }) => {
     // @ts-ignore
     HTMLCanvasElement.prototype.getContext = function (t, o) { return t === 'webgl2' ? null : orig.call(this, t, o); };
   });
-  await page.goto('./');
+  await page.goto('./about.html');
   await expect(page.locator('body')).toHaveAttribute('data-gl', 'missing');
   await expect(page.locator('#gpu')).toContainText('does not offer WebGL2');
 });
