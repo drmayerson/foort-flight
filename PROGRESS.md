@@ -242,3 +242,21 @@ Until then the fuzzball refresh drops to about 30 fps while its centre is traced
 
 - Firefox and the phone: `tracer.html` is not published (the branch is unmerged). The fence-only path (no timer queries) ran here only in headless Chrome, where the e2e load test held a 60 fps median.
 - G1 traces static observers only; moving observers and Kerr–Schild ship coordinates are G2.
+
+### G1 device runs (user, 2026-11-18)
+
+The published `tracer.html`, Normal tier, N = 512 (laptop) and the default scene sizes on the phone. The HUD's frame p90 covers the last 120 frames, which were after the trace when the user read it; the frame rate while tracing is frames / trace time:
+
+| | trace | frames | fps while tracing |
+|---|---|---|---|
+| Kerr, laptop Firefox 160 (fences only) | 0.45 s | 27 | 60 |
+| Fuzzball λ = 5e-3, laptop Firefox | 14.39 s | 535 | 37 |
+| Kerr, phone (Xclipse 920, Chrome; fences only) | 1.21 s | 70 | 58 |
+| Fuzzball λ = 5e-3, phone | 10.08 s | 437 | 43 |
+| for comparison: fuzzball, laptop Chrome (timer queries) | 6.83 s | 286 | 42 |
+
+- **Black holes:** full frame rate in all three browsers, the phone included; the fence-only budget works.
+- **Fuzzball:** about 40 fps while its centre is traced, on every device: the long-ray floor of the finding above, not a browser issue. To be fixed in G3 (option 1).
+- The HUD now prints "fps while tracing" for the last trace.
+
+**CHECKPOINT G1:** tests pass; records bit-identical to FOORT-GPU on all 39 cases; device runs as above.

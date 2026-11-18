@@ -108,7 +108,7 @@ async function main() {
     const res = last?.result;
     $('hud').textContent = `${(1000 / iv.median).toFixed(1)} fps (frame p90 ${iv.p90.toFixed(1)} ms; refresh ${s.refreshMs.toFixed(1)} ms) · `
       + `budget ${(s.R / 1000).toFixed(1)}k rays/frame${Number.isFinite(s.rate) ? `, ${(s.rate / 1000).toFixed(0)}k rays/GPU ms (timer)` : ' (fences)'} · in flight ${s.inflight} · `
-      + (res ? `trace ${(res.wallMs / 1000).toFixed(2)} s in ${res.frames} frames` : `tracing ${prog}%`);
+      + (res ? `trace ${(res.wallMs / 1000).toFixed(2)} s in ${res.frames} frames (${(1000 * res.frames / res.wallMs).toFixed(0)} fps while tracing)` : `tracing ${prog}%`);
   };
 
   const fromUi = () => sceneView(/** @type {HTMLSelectElement} */ ($('scene')).value, /** @type {any} */ (/** @type {HTMLSelectElement} */ ($('tier')).value), Number(/** @type {HTMLSelectElement} */ ($('N')).value));
