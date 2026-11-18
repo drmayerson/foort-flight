@@ -388,3 +388,33 @@ Smoke run (`dev/scripts/g4Smoke.mjs`, Chrome, 1280 × 800): 60 fps (p90 16.8 ms)
 - Free mode is kinematic: the HUD's "v vs ZAMO" is the chosen observer's speed (0 for the ZAMO), not the camera's coordinate motion.
 - A few soft beads remain along the shadow's edge (texel blending at a lensing discontinuity); for G7's quality work.
 - Device checks (Firefox, phone, touch) on the published page are welcome but not blocking.
+
+## G5 — Ship dynamics (2026-11-18)
+
+Branch `g5-ship`.
+
+### Delivered
+
+- `js/physics/christoffel.js` (Christoffel symbols by differences), `js/physics/ship.js` (forced geodesics with the Fermi–Walker triad and attitude rotation; DP5 integrator; ending events; invariants; the static acceleration), `js/game/shipClock.js` (time warp, CPU budget, rocket equation).
+- Headless harness `dev/scripts/g5Harness.mjs` over the cases in `dev/scripts/shipCases.mjs` (numbers in `dev/reports/g5/harness.json`, `harness_log.txt`); the same cases are the unit tests (`tests/unit/g5ship.test.js`).
+
+### Plan 4.4 tests, with numbers (this laptop, Node 26)
+
+| test | result | plan |
+|---|---|---|
+| Christoffels vs Schwarzschild analytic | max relative error 2.7e-12 (zero ones ≤ 2.9e-14) | validate |
+| engines off, Kerr a = 0.9, inclined eccentric orbit (E = 0.943, L_z = 2.72, Q = 2.30), 3 orbits | drift per orbit: E 2.5e-11, L_z 1.3e-10, Q 2.9e-10; u·u + 1 = 1.8e-12; triad 1.6e-12; 834 steps, 0.12 s | ≤ 1e-8 per orbit |
+| the same geodesic in KS and BL (300 M) | Δr 6e-9, Δθ 1.3e-8, Δφ 2.3e-8 | consistency |
+| circular orbit at 10 M (a = 0.9) | r constant to 7e-12, φ on the analytic orbit to 1.2e-10, period 2π(r^1.5 + a) to 1e-9 | stays circular, analytic period |
+| ISCO (Schwarzschild, 6 M ± 0.1) | 5.9 M plunges (horizon at τ = 224 M); 6.1 M stays bound (r = 6.04 M after 3000 M) | plunges inside |
+| hovering thrust | = static acceleration to 2.5e-12 (Schwarzschild r = 3: 0.1925 = 1/(r²√(1 − 2/r))) and 7e-13 (Kerr a = 0.9, r = 4, equator: 0.09276 = √Δ/(r³(1 − 2/r))) | equals analytic |
+| geodetic precession, Schwarzschild r = 10, one orbit | 1.0258 rad = 2π[1 − √(1 − 3/r)] to 1.8e-10 | as stated |
+| flat limit, constant proper acceleration 1e-3 for 1000 M | x and t hyperbolic to 1e-8; Δv = 1 | hyperbolic motion |
+| ST3Cr λ = 5e-3: bound orbit, 600 M | E 1.1e-11, L_z 1.1e-10 | conserved |
+| ST3Cr cap dive from 2 M | down to r = 0.0065 M (inside the cap), back out to 1.5 M, no event; on the way in τ = 7.5 M while t = 47.7 M (outside clock ×6.4) | dive and return |
+| ST3Cr aimed along the axis | ends at a D6 centre ("singularity-center") | detection |
+| attitude rate 0.1 rad/M about "up" for 5 M | forward turned 0.5 rad towards "right" (to 1e-6) | — |
+| one game frame (1/60 s at 20 M/s, near the hole) | 0.14 ms, 1.8 steps | ≤ 2 ms with prediction (G6) |
+| time warp / budget | 10× gives 10× the proper time; 1× while thrusting; a 0.01 ms budget limits it and reports the effective warp | F8 |
+
+Unit tests: 66/66 (Vitest); type check clean. No browser part in G5 (the ship enters the game in G6).
