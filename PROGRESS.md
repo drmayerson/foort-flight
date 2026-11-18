@@ -236,6 +236,8 @@ The scheduler's per-frame log shows that near the fuzzball's centre **even the s
 
 Until then the fuzzball refresh drops to about 30 fps while its centre is traced; black holes are unaffected.
 
+**User, 2026-11-18:** option 1 for now, provisionally (DECISIONS.md).
+
 ### Not covered yet
 
 - Firefox and the phone: `tracer.html` is not published (the branch is unmerged). The fence-only path (no timer queries) ran here only in headless Chrome, where the e2e load test held a 60 fps median.
