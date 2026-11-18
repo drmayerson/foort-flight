@@ -1,0 +1,3 @@
+{ "id": "tour-fuzzball", "title": "8b. Free tour: fuzzball", "spacetime": { "id": "st3cr", "params": { "lambda": 0.005 } }, "mode": "free",
+  "camera": { "r": 20, "theta": 75, "family": "zamo" },
+  "notes": "A fuzzball of the same mass as 8a's black hole, seen from the same place. Fly in: there is no shadow edge to stop you, and you can enter the cap." }

@@ -17,6 +17,8 @@ const HEADER = '#version 300 es\nprecision highp float;\nprecision highp int;\np
 const BASE = new URL('../../shaders/glsl/', import.meta.url).href;
 /** auto-exposure key on the mean luminance: low, since half the view is often the shadow and the sky (G2 tuning) */
 export const KEY = 0.06;
+/** the auto-exposure's upper limit (G6: an empty starfield drove it to very bright stars) */
+export const MAX_EXPOSURE = 8;
 
 /**
  * @typedef {Object} DisplayParams
@@ -247,7 +249,8 @@ export async function createDisplay(gl) {
             const lum = 0.2126 * v[0] + 0.7152 * v[1] + 0.0722 * v[2];
             if (lum > 0 && Number.isFinite(lum)) {
               // key KEY on the mean luminance, smoothed (eye adaptation over ~0.5 s)
-              const target = KEY / lum;
+              // capped: a view of nothing but the night sky would otherwise be exposed up to daylight
+              const target = Math.min(KEY / lum, MAX_EXPOSURE);
               exposureAuto = exposureAuto * 0.85 + target * 0.15;
             }
           }

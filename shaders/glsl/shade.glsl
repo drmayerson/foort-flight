@@ -123,14 +123,21 @@ vec3 starsW(vec3 d, float s, float sigW) {
   vec3 col = vec3(0.0);
   for (int L = 0; L < 3; L++) {
     float K = 24.0 * pow(3.0, float(L));
-    vec2 cell = floor((uv * 0.5 + 0.5) * K);
-    vec4 h = hash4(vec3(cell, face * 3.0 + float(L)));
-    if (h.x > 0.3) continue;
-    vec2 p = ((cell + 0.2 + 0.6 * h.yz) / K) * 2.0 - 1.0;
-    float dist = length(uv - p) * m * m;        // ~ angle on the sphere (gnomonic)
-    float flux = pow(h.w, 8.0) * pow(0.25, float(L)) + 0.002;
-    float T = 2600.0 + 26000.0 * pow(hash1(vec3(cell, face + 91.0)), 3.0);
-    col += dim * flux * exp(-0.5 * dist * dist / (sig * sig)) * bb(s * T);
+    vec2 q = (uv * 0.5 + 0.5) * K;
+    vec2 cell0 = floor(q);
+    // the cell and its neighbours on the near side (2 x 2): a star near a cell edge is not cut off (G6)
+    vec2 side = sign(fract(q) - 0.5);
+    for (int k = 0; k < 4; k++) {
+      vec2 cell = cell0 + side * vec2(float(k & 1), float(k >> 1));
+      vec4 h = hash4(vec3(cell, face * 3.0 + float(L)));
+      if (h.x > 0.3) continue;
+      vec2 p = ((cell + 0.2 + 0.6 * h.yz) / K) * 2.0 - 1.0;
+      float dist = length(uv - p) * m * m;        // ~ angle on the sphere (gnomonic)
+      if (dist > 5.0 * sig) continue;
+      float flux = pow(h.w, 8.0) * pow(0.25, float(L)) + 0.002;
+      float T = 2600.0 + 26000.0 * pow(hash1(vec3(cell, face + 91.0)), 3.0);
+      col += dim * flux * exp(-0.5 * dist * dist / (sig * sig)) * bb(s * T);
+    }
   }
   // a faint glow band (a galaxy seen edge-on), 5000 K
   vec3 n = normalize(vec3(0.3, 0.5, 0.81));

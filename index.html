@@ -11,7 +11,11 @@
 <body class="game">
 <div id="stage">
   <canvas id="view" tabindex="0" aria-label="the view from the ship"></canvas>
+  <canvas id="overlay" aria-hidden="true"></canvas>
   <pre id="hud" aria-live="off"></pre>
+  <div id="notes" hidden></div>
+  <canvas id="map" hidden></canvas>
+  <div id="ending" class="overlay" hidden></div>
   <div id="credit" class="muted"></div>
   <div id="help" class="overlay" hidden></div>
   <div id="fatal" class="overlay" hidden></div>
@@ -19,11 +23,14 @@
 <aside id="side">
   <header>
     <h1>FOORT Flight</h1>
-    <div class="row"><button id="helpBtn" title="help (?)">?</button><button id="restart" title="back to the start position">Start position</button><button id="share">Copy link</button><span id="shareNote" class="muted"></span></div>
+    <div class="row"><button id="helpBtn" title="help (?)">?</button><button id="restart" title="restart the scenario, or back to the start position">Restart</button><button id="mapBtn" title="map (M)">Map</button><button id="share">Copy link</button><span id="shareNote" class="muted"></span></div>
+    <div class="row"><select id="scenario" aria-label="scenario"></select></div>
+    <div class="row" id="boardRow"><span class="muted">Board a ship:</span><button id="boardObs" title="starts with this observer's motion (a ZAMO starts falling)">here</button><button id="boardCirc">in orbit</button><button id="boardHover">hovering</button></div>
+    <div class="row" id="leaveRow" hidden><button id="leaveShip">Leave the ship (free camera)</button></div>
   </header>
   <div id="panel"></div>
   <footer class="muted">
-    <p>Light rays traced in real time on your GPU, after <a href="https://drmayerson.github.io/foort-gpu/">FOORT-GPU</a>. Free mode (milestone G4); the physical spaceship follows.</p>
+    <p>Light rays traced in real time on your GPU, after <a href="https://drmayerson.github.io/foort-gpu/">FOORT-GPU</a>. Free camera and spaceship (milestone G6).</p>
     <p><a href="./about.html">About and test pages</a> · <button id="reset" class="link">Reset all settings</button></p>
   </footer>
 </aside>

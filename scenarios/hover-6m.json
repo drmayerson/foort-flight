@@ -1,0 +1,3 @@
+{ "id": "hover-6m", "title": "2. Hover at 6 M", "spacetime": { "id": "kerr", "params": { "a": 0.9 } }, "mode": "physical",
+  "ship": { "r": 6, "theta": 90, "family": "static", "look": "out" }, "level": 0.5, "assist": "hover",
+  "notes": "Holding still at 6 M takes a strong engine: the hover assist (6) fires it for you. Look out at the sky: hovering deep in the potential, you see the universe blueshifted and brightened (the HUD's 'light ahead'). Switch the assist off to fall." }

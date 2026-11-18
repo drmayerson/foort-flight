@@ -1,0 +1,3 @@
+{ "id": "fuzzball-dive", "title": "6. Fuzzball cap dive and return", "spacetime": { "id": "st3cr", "params": { "lambda": 0.005 } }, "mode": "physical",
+  "ship": { "r": 2, "theta": 69, "family": "zamo", "v": [0, 0.02, 0], "look": "hole" }, "level": 0.05,
+  "notes": "A fuzzball has no horizon: you fall into its cap (the structure is 0.02 M across) and come back out. On the way down, compare your clock τ with the outside clock t: the deep throat makes t run several times faster." }

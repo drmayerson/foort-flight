@@ -1,0 +1,3 @@
+{ "id": "tour-kerr", "title": "8a. Free tour: black hole", "spacetime": { "id": "kerr", "params": { "a": 0.9 } }, "mode": "free",
+  "camera": { "r": 20, "theta": 75, "family": "zamo" },
+  "notes": "Free camera, no inertia: fly with W/A/S/D/R/F, look with the mouse. Compare with 8b, a fuzzball of the same mass." }

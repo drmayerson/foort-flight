@@ -1,0 +1,20 @@
+{
+ "id": "ergosphere",
+ "title": "4. Ride the ergosphere",
+ "spacetime": {
+  "id": "kerr",
+  "params": {
+   "a": 0.99
+  }
+ },
+ "mode": "physical",
+ "ship": {
+  "r": 1.8,
+  "theta": 90,
+  "family": "circularPro",
+  "look": "prograde"
+ },
+ "level": 2,
+ "assist": "hover",
+ "notes": "A prograde circular orbit at 1.8 M around a hole spinning at a = 0.99: inside the ergoregion (the violet surface on the map), where space itself is dragged around the hole and nothing can stand still, not even with infinite thrust. The hover assist (6) tells you so. Escape: point out (5) and fire (Shift)."
+}

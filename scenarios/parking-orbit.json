@@ -1,0 +1,3 @@
+{ "id": "parking-orbit", "title": "1. Parking orbit at 10 M", "spacetime": { "id": "kerr", "params": { "a": 0.9 } }, "mode": "physical",
+  "ship": { "r": 10, "theta": 90, "family": "circularPro", "look": "prograde" }, "level": 0.05,
+  "notes": "A circular, prograde orbit around a black hole spinning at a = 0.9. Engines off: you are weightless, in free fall. The hole is to your left; the disc is in your orbital plane. Try the map (M) and the assists (2-8)." }

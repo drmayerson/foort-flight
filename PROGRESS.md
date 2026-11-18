@@ -418,3 +418,27 @@ Branch `g5-ship`.
 | time warp / budget | 10× gives 10× the proper time; 1× while thrusting; a 0.01 ms budget limits it and reports the effective warp | F8 |
 
 Unit tests: 66/66 (Vitest); type check clean. No browser part in G5 (the ship enters the game in G6).
+
+## G6 — Physical mode (2026-11-18)
+
+Branch `g6-physical`.
+
+### Delivered
+
+- **The spaceship in the game** (`js/game/physicalMode.js`, `js/main.js`): thrust controls, turning, time warp, ending events with explanation screens (horizon, throat, D6 centre, D0 ring, escape), mode switching (board here / in orbit / hovering; leave the ship).
+- **Assists** (`js/game/assists.js`): stop turning, point prograde/retrograde/in/out, hover here, circularize, match the ZAMO; the HUD names the active assist and why one is refused.
+- **Full HUD** (`js/game/hud.js`): τ, t, dt/dτ, warp; r, θ, speed vs the ZAMO, orbit status (bound/unbound/plunging/escaping, from E and the prediction); thrust in c⁴/GM and g at Sgr A*, level, Δv; light shifts; tidal acceleration over 100 m at Sgr A*; photon orbit and ISCO; expert: E, L_z, Q, |u·u + 1|, triad error. Markers on the view: prograde, retrograde, the hole.
+- **Map** (M): top and side views with horizon, ergosurface, photon orbits, ISCOs, disc, fuzzball sources, ship, velocity, predicted path and trail (`js/game/map.js`, `predictor.js`).
+- **Scenarios 1–8** (`scenarios/`): parking orbit, hover at 6 M, photon-orbit dive, ergosphere, fall into Kerr, fuzzball cap dive, the λ = 0 dive, free tours of the black hole and the fuzzball. URL `?scenario=<id>`.
+
+### Tests
+
+| suite | result |
+|---|---|
+| Vitest | 72/72. New (G6): **hover holds r to 1e-3 M over 100 M** (Schwarzschild r = 4; Kerr a = 0.9 at 6 M); hover refused in the ergoregion (a = 0.9, r = 1.8, with the reason); **circularize from 90% of the circular speed at 10 M: eccentricity < 1e-3** over the next orbit; match ZAMO to γ − 1 < 1e-6 (released at 2e-7 c, then one frame of fall); pointing prograde holds; tidal tensor = Schwarzschild's (−2M/r³, M/r³, M/r³) to 1e-5; free fall through the physical step conserves E and L_z; warp 10× |
+| Playwright | 26/26. New (G6): all 9 scenarios load in their mode; the fall into Kerr ends at the horizon with the explanation, restart works; the λ = 0 dive ends in the throat; the ergosphere refuses to hover with the reason; hover-6m holds r = 6 M to 1e-3 M over > 40 M of game time; Shift raises Δv, key 2 points prograde, M toggles the map, leaving keeps the radius, boarding "hovering" engages the hover |
+| type check | clean |
+
+Headless scenario check (engines off): parking orbit stays at 10.0000 M for 400 M; hover-6m falls in after 15 M without its assist; photon-orbit dive falls in after 51 M; fall into Kerr at τ = 15 M (t = 22 M, dt/dτ = 616 at the end); fuzzball dive reaches 0.0024 M and returns; the λ = 0 dive reaches the throat at τ = 7.4 M while t = 3078 M.
+
+Smoke run (1280 × 800, Chrome): 60 fps, frame p90 16.9 ms in the parking orbit with the map open; fall into Kerr: the HUD reads γ = 23.6 against the ZAMO and "plunging" just before the horizon.

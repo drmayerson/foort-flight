@@ -1,0 +1,3 @@
+{ "id": "bh0-dive", "title": "7. The same dive into the λ = 0 black hole", "spacetime": { "id": "st3crBH", "params": {} }, "mode": "physical",
+  "ship": { "r": 2, "theta": 69, "family": "zamo", "v": [0, 0.02, 0], "look": "hole" }, "level": 0.05,
+  "notes": "At λ = 0 the cap has receded down an infinitely long throat: this is a black hole. The same fall never comes back." }

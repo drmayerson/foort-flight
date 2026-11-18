@@ -1,0 +1,3 @@
+{ "id": "fall-into-kerr", "title": "5. Fall into a black hole", "spacetime": { "id": "kerr", "params": { "a": 0.9 } }, "mode": "physical",
+  "ship": { "r": 6, "theta": 60, "family": "static", "look": "hole" }, "level": 0.05,
+  "notes": "You start at rest at 6 M with the engines off, and fall. Your own clock (τ) reaches the horizon in finite time; the outside clock (t) runs away. The flight ends at the horizon." }

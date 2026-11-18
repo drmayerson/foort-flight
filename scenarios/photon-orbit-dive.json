@@ -1,0 +1,25 @@
+{
+ "id": "photon-orbit-dive",
+ "title": "3. Dive to the photon orbit and get out",
+ "spacetime": {
+  "id": "kerr",
+  "params": {
+   "a": 0.5
+  }
+ },
+ "mode": "physical",
+ "ship": {
+  "r": 8,
+  "theta": 90,
+  "family": "zamo",
+  "v": [
+   0.2,
+   0.3595,
+   0
+  ],
+  "look": "hole"
+ },
+ "level": 0.3,
+ "notes": "You are on a zoom-whirl orbit: you will whip around the hole close to the photon orbit (where light circles it, 2.35 M prograde for a = 0.5) and then fall in. The map's predicted path (dashed) is red when it ends in the hole. Get out: point away from the hole (5) and hold Shift for the main engine, before it is too late.",
+ "timeRate": 5
+}
