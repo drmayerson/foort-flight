@@ -172,3 +172,71 @@ Summary of the pasted reports: `dev/reports/g0/user/g0b_summary.json`.
 - **F12: WebGL2** (user: "Switch to WebGL2"); **F11:** any modern browser with WebGL2, phones included. The plan is now **v1.1** (`FLIGHT_STAGE2A_PLAN.md`): Section 3 rewritten for WebGL2 and fence-based scheduling; G1 is now "WebGL2 tracer integration" (the vendored GLSL tracer unchanged, camera through the vielbein) instead of a WGSL port.
 - **Landing page** now checks WebGL2 (float targets, 6 draw buffers, highp) and explains when it is missing. Tests: Vitest 8/8, Playwright 7/7, type check clean.
 - **Carried into G1:** the scheduler judges overload from frames in flight and the device's own refresh interval (the phone's 24 Hz showed why).
+
+## G1 — WebGL2 tracer integration, static observer (2026-11-18)
+
+Branch `g1-tracer` (not merged, not pushed).
+
+### Delivered
+
+- **`js/gl/tracer.js`:** the game's tracer backend. It compiles FOORT-GPU's GLSL tracer **unchanged** from `vendor/` (closed-form Kerr; tabulated ST3Cr with G3 = G4 and texel reuse; BS3 for Normal; the other gate metrics too), takes the uniforms of the vendored `gpuTraceSetup`, the tables and fluid table from the vendored bake worker, and traces into 6 RGBA32F attachments (the 24-float record). It only issues draws; records are read back asynchronously (PBO + polled fence).
+- **`js/camera/generalTetrad.js`:** the general pinhole camera through `uE` alone (any observer, attitude, boost, cube face), no shader change; `staticFrame` (FOORT's static observer), `boostFrame`, `rotateFrame`, `cubeFaceFrames`, `withCamera`.
+- **`js/gl/scheduler.js`:** the per-frame scheduler: a ray budget per frame, centre-out chunks of 16-row bands, one fence per frame, timer queries where available (per tracer program), fences and the measured refresh interval otherwise.
+- **`tracer.html`** (`js/g1Page.js`, `js/gl/debugDisplay.js`, `shaders/glsl/debug.glsl`): static-observer test page. Scenes from FOORT-GPU's quality gate, tiers, N = 256–1024, FOORT or pinhole camera, four-colour / redshift / steps / termination views; the four-colour screen turns with the azimuth while tracing, so stutter is visible; "keep tracing" load test. Linked from the landing page.
+- **Scripts:** `g1Compare.mjs` (records vs the FOORT-GPU viewer, using the FOORT-GPU clone read-only), `g1Load.mjs` (frame pacing under continuous tracing), `g1Smoke.mjs` (load the page, screenshot).
+
+### Tests
+
+| suite | result |
+|---|---|
+| Vitest | 21/21: G0's 8; the pinhole camera equals FOORT's static vielbein (Kerr far and near, south hemisphere, ST3Cr); rays are null with unit local energy and point along the screen direction for static, boosted (v = 0.84 c) and rotated frames; cube faces centred on the six axes and seamless at their edges; chunking covers every pixel exactly once |
+| Playwright | 10/10: G0's 7; Kerr (shadow, escapes, crossings, closed-form program); fuzzball through the tables with FOORT vs pinhole camera; frame pace while tracing |
+| type check | clean |
+
+### Records vs FOORT-GPU (`dev/reports/g1/compare.json`, `compare_log.txt`)
+
+The 13 quality-gate scenes (Kerr a = 0, 0.94, 0.998; Johannsen; Manko–Novikov; Reissner–Nordström; ST3Cr λ = 0.05, 5e-3, 1e-3, 1e-4 and 0) × the Reference, High and Normal tiers, 128², against FOORT-GPU's viewer at the vendored commit:
+
+| | result, all 39 cases |
+|---|---|
+| ours, FOORT's camera uniforms | **100% of pixels bit-identical** (all 24 floats) |
+| ours, the general pinhole camera | **100% bit-identical** as well (its `uE` rounds to the same float32 values) |
+| float32 noise floor (ε × (1 + 1e-6)), for scale | black holes: 100% class agreement, 0.01–0.15% of escape directions off by > 1e-3 rad; fuzzball λ > 0: 98.5–100% class agreement, 1.8–5.8% of directions off (chaos) |
+
+So the game traces exactly what FOORT-GPU traces, and the camera path for general observers adds no error at all for static observers.
+
+### Timings and frame pacing (this laptop, Chrome)
+
+Full trace of one image, Normal tier (`dev/reports/g1/timing.json`):
+
+| scene | N | FOORT-GPU (tiles back to back) | ours, inside a 60 fps frame loop |
+|---|---|---|---|
+| Kerr (5 scenes) | 512² | 77–87 ms | 133–167 ms (8–10 frames) |
+| Johannsen / Manko–Novikov | 512² | 150 / 415 ms | 267 / 883 ms |
+| ST3Cr λ = 0.05 … 1e-4 | 256² | 490–690 ms | 625–1470 ms (35–60 frames) |
+| ST3Cr λ = 0 | 256² | 130 ms | 351 ms |
+
+Ours takes about twice as long by design: the scheduler gives tracing half of each frame and leaves the rest to the display.
+
+Frame pacing while tracing continuously, 512², headed window (`dev/reports/g1/load_headed.json`):
+
+| scene | fps | frame p90 | worst frame |
+|---|---|---|---|
+| Kerr a = 0.94, 17° and 80° | 59.9 | 16.8 ms | 18–33 ms |
+| ST3Cr λ = 0 (black hole) | 59.9 | 16.9 ms | 17 ms |
+| ST3Cr λ = 5e-3 (fuzzball) | 59.9 median | **33 ms** | 50–100 ms |
+
+### Finding: long fuzzball rays set a floor on frame time
+
+The scheduler's per-frame log shows that near the fuzzball's centre **even the smallest chunk (16 × 16 rays) takes 30–46 ms of GPU time**, while 2700 rays of the outer image take 2.5 ms. A chunk costs about as much as its longest ray (up to 5000 table steps, chaotic trapped light), not its number of rays, so no ray budget can keep such frames under 16.7 ms: every other frame or so is dropped while the centre is traced. Kerr and the λ = 0 black hole have no such rays and stay at 60 fps.
+
+**Proposed remedy (for G3, where cubemaps refresh continuously):** split long rays across frames. FOORT-GPU's tracer already has the pieces in its ray-compaction mode (stop rays at a step limit and store their state in attachments 6–7; resume listed rays), which needs 8 draw buffers (the laptop and the phone have 8). Two ways:
+1. **Without touching the shader:** step-limited passes (mode 1), an asynchronous read-back of which rays are unfinished, an index texture, resume passes (mode 2) into a second record set, and a small merge pass of the game's own. More machinery, no upstream change.
+2. **With a small upstream change in FOORT-GPU:** an "in-place resume" mode (resume a pixel's own ray if unfinished, else copy its record), which needs no read-back or index. Written up as an upstream note if chosen; the plan forbids editing the vendored copy.
+
+Until then the fuzzball refresh drops to about 30 fps while its centre is traced; black holes are unaffected.
+
+### Not covered yet
+
+- Firefox and the phone: `tracer.html` is not published (the branch is unmerged). The fence-only path (no timer queries) ran here only in headless Chrome, where the e2e load test held a 60 fps median.
+- G1 traces static observers only; moving observers and Kerr–Schild ship coordinates are G2.

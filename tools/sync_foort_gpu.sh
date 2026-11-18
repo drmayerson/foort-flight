@@ -31,6 +31,7 @@ js/ref/cpuTracer.js
 js/ref/inspectWorker.js
 js/gpu/traceConfig.js
 js/gpu/tiers.js
+js/gpu/refine.js
 js/units.js
 js/export.js
 js/sky.js
@@ -67,8 +68,11 @@ if [ -d "$DEST" ]; then
   echo "== changes against the current snapshot =="
   diff -rq "$DEST" "$TMP" || true
 fi
-rm -rf "$DEST"
-mkdir -p "$(dirname "$DEST")"
-cp -r "$TMP" "$DEST"
+# replace the contents (not the folder itself: Windows refuses to remove a folder some process has open)
+mkdir -p "$DEST"
+find "$DEST" -mindepth 1 -type f -delete
+find "$DEST" -mindepth 1 -type d -empty -delete 2>/dev/null || true
+cp -r "$TMP"/. "$DEST"/
+if ! diff -r "$TMP" "$DEST" > /dev/null; then echo "sync incomplete: $DEST differs from the snapshot" >&2; exit 1; fi
 echo "vendored foort-gpu $HASH ($DATE) into $DEST"
 echo "review with: git diff --stat -- $DEST"

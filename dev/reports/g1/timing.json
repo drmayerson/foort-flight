@@ -1,0 +1,100 @@
+{
+ "date": "2026-11-18T09:01:48.273Z",
+ "foortGpu": "7896677501d4886328fea90835c08a3a1f950a08",
+ "renderer": "ANGLE (AMD, AMD Radeon(TM) Graphics (0x00001900) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+ "N": 128,
+ "rows": [],
+ "timing": [
+  {
+   "scene": "kerr_a0_inc17",
+   "N": 512,
+   "foortGpuWallMs": 85.09999996423721,
+   "oursWallMs": 150.10000002384186,
+   "oursFrames": 9
+  },
+  {
+   "scene": "kerr_a0_inc80",
+   "N": 512,
+   "foortGpuWallMs": 79.60000002384186,
+   "oursWallMs": 133.39999997615814,
+   "oursFrames": 8
+  },
+  {
+   "scene": "kerr_a0.94_inc17",
+   "N": 512,
+   "foortGpuWallMs": 83.30000001192093,
+   "oursWallMs": 150.19999998807907,
+   "oursFrames": 9
+  },
+  {
+   "scene": "kerr_a0.94_inc80",
+   "N": 512,
+   "foortGpuWallMs": 77.20000004768372,
+   "oursWallMs": 150.30000001192093,
+   "oursFrames": 9
+  },
+  {
+   "scene": "kerr_a0.998_inc80",
+   "N": 512,
+   "foortGpuWallMs": 86.69999998807907,
+   "oursWallMs": 167.0999999642372,
+   "oursFrames": 10
+  },
+  {
+   "scene": "johannsen_a0.94_a13_5.5",
+   "N": 512,
+   "foortGpuWallMs": 149.9000000357628,
+   "oursWallMs": 267.39999997615814,
+   "oursFrames": 16
+  },
+  {
+   "scene": "mankoNovikov_a0.94_a3_2",
+   "N": 512,
+   "foortGpuWallMs": 415.4000000357628,
+   "oursWallMs": 883.1999999880791,
+   "oursFrames": 54
+  },
+  {
+   "scene": "rn_Q0.8_inc60",
+   "N": 512,
+   "foortGpuWallMs": 83.5,
+   "oursWallMs": 150.0999999642372,
+   "oursFrames": 9
+  },
+  {
+   "scene": "st3cr_l0.05",
+   "N": 256,
+   "foortGpuWallMs": 493.39999997615814,
+   "oursWallMs": 624.6999999880791,
+   "oursFrames": 35
+  },
+  {
+   "scene": "st3cr_l5e-3",
+   "N": 256,
+   "foortGpuWallMs": 581.8000000119209,
+   "oursWallMs": 1134.699999988079,
+   "oursFrames": 43
+  },
+  {
+   "scene": "st3cr_l1e-3",
+   "N": 256,
+   "foortGpuWallMs": 582.9000000357628,
+   "oursWallMs": 1468.699999988079,
+   "oursFrames": 60
+  },
+  {
+   "scene": "st3cr_l1e-4",
+   "N": 256,
+   "foortGpuWallMs": 692.9000000357628,
+   "oursWallMs": 1268.5999999642372,
+   "oursFrames": 49
+  },
+  {
+   "scene": "st3cr_l0",
+   "N": 256,
+   "foortGpuWallMs": 130,
+   "oursWallMs": 350.9000000357628,
+   "oursFrames": 21
+  }
+ ]
+}

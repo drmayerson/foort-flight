@@ -1,0 +1,52 @@
+reference kerr_a0_inc17              identical     100% | pinhole: ident 100% class 100% dir>1e-3 0% cross 0% | floor: class 100% dir>1e-3 0.146% cross 0.043%
+reference kerr_a0_inc80              identical     100% | pinhole: ident 100% class 100% dir>1e-3 0% cross 0% | floor: class 100% dir>1e-3 0.098% cross 0.11%
+reference kerr_a0.94_inc17           identical     100% | pinhole: ident 100% class 100% dir>1e-3 0% cross 0% | floor: class 100% dir>1e-3 0.018% cross 0.031%
+reference kerr_a0.94_inc80           identical     100% | pinhole: ident 100% class 100% dir>1e-3 0% cross 0% | floor: class 100% dir>1e-3 0.031% cross 0.085%
+reference kerr_a0.998_inc80          identical     100% | pinhole: ident 100% class 100% dir>1e-3 0% cross 0% | floor: class 100% dir>1e-3 0.031% cross 0.043%
+reference johannsen_a0.94_a13_5.5    identical     100% | pinhole: ident 100% class 100% dir>1e-3 0% cross 0% | floor: class 100% dir>1e-3 0.012% cross 0.134%
+reference mankoNovikov_a0.94_a3_2    identical     100% | pinhole: ident 100% class 100% dir>1e-3 0% cross 0% | floor: class 100% dir>1e-3 0.024% cross 0.061%
+reference rn_Q0.8_inc60              identical     100% | pinhole: ident 100% class 100% dir>1e-3 0% cross 0% | floor: class 100% dir>1e-3 0.085% cross 0.061%
+reference st3cr_l0.05                identical     100% | pinhole: ident 100% class 100% dir>1e-3 0% cross 0% | floor: class 99.988% dir>1e-3 2.588% cross 0.244%
+reference st3cr_l5e-3                identical     100% | pinhole: ident 100% class 100% dir>1e-3 0% cross 0% | floor: class 98.7% dir>1e-3 5.804% cross 0.256%
+reference st3cr_l1e-3                identical     100% | pinhole: ident 100% class 100% dir>1e-3 0% cross 0% | floor: class 98.956% dir>1e-3 4.773% cross 0.732%
+reference st3cr_l1e-4                identical     100% | pinhole: ident 100% class 100% dir>1e-3 0% cross 0% | floor: class 98.492% dir>1e-3 2.74% cross 1.654%
+reference st3cr_l0                   identical     100% | pinhole: ident 100% class 100% dir>1e-3 0% cross 0% | floor: class 100% dir>1e-3 0.061% cross 0.049%
+high      kerr_a0_inc17              identical     100% | pinhole: ident 100% class 100% dir>1e-3 0% cross 0% | floor: class 100% dir>1e-3 0.134% cross 0.049%
+high      kerr_a0_inc80              identical     100% | pinhole: ident 100% class 100% dir>1e-3 0% cross 0% | floor: class 100% dir>1e-3 0.11% cross 0.085%
+high      kerr_a0.94_inc17           identical     100% | pinhole: ident 100% class 100% dir>1e-3 0% cross 0% | floor: class 100% dir>1e-3 0.031% cross 0.043%
+high      kerr_a0.94_inc80           identical     100% | pinhole: ident 100% class 100% dir>1e-3 0% cross 0% | floor: class 100% dir>1e-3 0.024% cross 0.043%
+high      kerr_a0.998_inc80          identical     100% | pinhole: ident 100% class 100% dir>1e-3 0% cross 0% | floor: class 100% dir>1e-3 0.018% cross 0.055%
+high      johannsen_a0.94_a13_5.5    identical     100% | pinhole: ident 100% class 100% dir>1e-3 0% cross 0% | floor: class 100% dir>1e-3 0.037% cross 0.11%
+high      mankoNovikov_a0.94_a3_2    identical     100% | pinhole: ident 100% class 100% dir>1e-3 0% cross 0% | floor: class 100% dir>1e-3 0.024% cross 0.055%
+high      rn_Q0.8_inc60              identical     100% | pinhole: ident 100% class 100% dir>1e-3 0% cross 0% | floor: class 100% dir>1e-3 0.073% cross 0.055%
+high      st3cr_l0.05                identical     100% | pinhole: ident 100% class 100% dir>1e-3 0% cross 0% | floor: class 99.945% dir>1e-3 2.502% cross 0.244%
+high      st3cr_l5e-3                identical     100% | pinhole: ident 100% class 100% dir>1e-3 0% cross 0% | floor: class 99.695% dir>1e-3 3.619% cross 0.275%
+high      st3cr_l1e-3                identical     100% | pinhole: ident 100% class 100% dir>1e-3 0% cross 0% | floor: class 99.78% dir>1e-3 3.149% cross 0.751%
+high      st3cr_l1e-4                identical     100% | pinhole: ident 100% class 100% dir>1e-3 0% cross 0% | floor: class 99.78% dir>1e-3 1.831% cross 1.788%
+high      st3cr_l0                   identical     100% | pinhole: ident 100% class 100% dir>1e-3 0% cross 0% | floor: class 100% dir>1e-3 0.061% cross 0.049%
+normal    kerr_a0_inc17              identical     100% | pinhole: ident 100% class 100% dir>1e-3 0% cross 0% | floor: class 100% dir>1e-3 0.146% cross 0.085%
+normal    kerr_a0_inc80              identical     100% | pinhole: ident 100% class 100% dir>1e-3 0% cross 0% | floor: class 100% dir>1e-3 0.146% cross 0.098%
+normal    kerr_a0.94_inc17           identical     100% | pinhole: ident 100% class 100% dir>1e-3 0% cross 0% | floor: class 100% dir>1e-3 0.037% cross 0.043%
+normal    kerr_a0.94_inc80           identical     100% | pinhole: ident 100% class 100% dir>1e-3 0% cross 0% | floor: class 100% dir>1e-3 0.043% cross 0.104%
+normal    kerr_a0.998_inc80          identical     100% | pinhole: ident 100% class 100% dir>1e-3 0% cross 0% | floor: class 100% dir>1e-3 0.037% cross 0.043%
+normal    johannsen_a0.94_a13_5.5    identical     100% | pinhole: ident 100% class 100% dir>1e-3 0% cross 0% | floor: class 100% dir>1e-3 0.024% cross 0.104%
+normal    mankoNovikov_a0.94_a3_2    identical     100% | pinhole: ident 100% class 100% dir>1e-3 0% cross 0% | floor: class 100% dir>1e-3 0.037% cross 0.073%
+normal    rn_Q0.8_inc60              identical     100% | pinhole: ident 100% class 100% dir>1e-3 0% cross 0% | floor: class 100% dir>1e-3 0.061% cross 0.098%
+normal    st3cr_l0.05                identical     100% | pinhole: ident 100% class 100% dir>1e-3 0% cross 0% | floor: class 99.945% dir>1e-3 2.502% cross 0.244%
+normal    st3cr_l5e-3                identical     100% | pinhole: ident 100% class 100% dir>1e-3 0% cross 0% | floor: class 99.695% dir>1e-3 3.619% cross 0.275%
+normal    st3cr_l1e-3                identical     100% | pinhole: ident 100% class 100% dir>1e-3 0% cross 0% | floor: class 99.78% dir>1e-3 3.149% cross 0.751%
+normal    st3cr_l1e-4                identical     100% | pinhole: ident 100% class 100% dir>1e-3 0% cross 0% | floor: class 99.78% dir>1e-3 1.831% cross 1.788%
+normal    st3cr_l0                   identical     100% | pinhole: ident 100% class 100% dir>1e-3 0% cross 0% | floor: class 100% dir>1e-3 0.061% cross 0.049%
+timing kerr_a0_inc17              N 512: FOORT-GPU 86 ms, ours 150 ms in 9 frames (60 fps display)
+timing kerr_a0_inc80              N 512: FOORT-GPU 75 ms, ours 150 ms in 9 frames (60 fps display)
+timing kerr_a0.94_inc17           N 512: FOORT-GPU 81 ms, ours 150 ms in 9 frames (60 fps display)
+timing kerr_a0.94_inc80           N 512: FOORT-GPU 77 ms, ours 150 ms in 9 frames (60 fps display)
+timing kerr_a0.998_inc80          N 512: FOORT-GPU 86 ms, ours 167 ms in 10 frames (60 fps display)
+timing johannsen_a0.94_a13_5.5    N 512: FOORT-GPU 134 ms, ours 200 ms in 12 frames (60 fps display)
+timing mankoNovikov_a0.94_a3_2    N 512: FOORT-GPU 372 ms, ours 656 ms in 41 frames (60 fps display)
+timing rn_Q0.8_inc60              N 512: FOORT-GPU 80 ms, ours 150 ms in 9 frames (60 fps display)
+timing st3cr_l0.05                N 256: FOORT-GPU 294 ms, ours 284 ms in 3 frames (60 fps display)
+timing st3cr_l5e-3                N 256: FOORT-GPU 469 ms, ours 1268 ms in 46 frames (60 fps display)
+timing st3cr_l1e-3                N 256: FOORT-GPU 461 ms, ours 1135 ms in 34 frames (60 fps display)
+timing st3cr_l1e-4                N 256: FOORT-GPU 551 ms, ours 1035 ms in 35 frames (60 fps display)
+timing st3cr_l0                   N 256: FOORT-GPU 128 ms, ours 300 ms in 18 frames (60 fps display)

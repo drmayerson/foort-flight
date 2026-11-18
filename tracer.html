@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FOORT Flight tracer test</title>
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="./style.css">
+<style>
+  #view { width: min(100%, 512px); aspect-ratio: 1; display: block; border: 1px solid var(--line); border-radius: 6px; background: #000; }
+  select { background: var(--panel); color: var(--fg); border: 1px solid var(--line); border-radius: 6px; padding: 4px 6px; font: inherit; }
+  #hud { font-variant-numeric: tabular-nums; font-size: 13px; }
+</style>
+</head>
+<body>
+<main>
+  <h1>FOORT Flight — tracer test (G1)</h1>
+  <p class="muted"><a href="./">Home</a> · FOORT-GPU's tracer, run by the game's WebGL2 backend and per-frame scheduler,
+    for a static observer. The four-colour screen turns with the azimuth (an exact symmetry, no re-trace) so that the
+    frame rate while tracing is visible.</p>
+  <div id="error" class="bad"></div>
+  <div class="row">
+    <label>Scene <select id="scene">
+      <option value="kerr_a0.94_inc17">Kerr a = 0.94, 17°</option>
+      <option value="kerr_a0.94_inc80">Kerr a = 0.94, 80°</option>
+      <option value="kerr_a0_inc80">Kerr a = 0, 80°</option>
+      <option value="st3cr_l5e-3">Fuzzball λ = 5e-3</option>
+      <option value="st3cr_l1e-3">Fuzzball λ = 1e-3</option>
+      <option value="st3cr_l0">Fuzzball λ = 0 (black hole)</option>
+    </select></label>
+    <label>Tier <select id="tier"><option value="normal">Normal</option><option value="high">High</option><option value="reference">Reference</option></select></label>
+    <label>N <select id="N"><option>256</option><option selected>512</option><option>1024</option></select></label>
+    <label>Camera <select id="camera"><option value="foort">FOORT static</option><option value="pinhole">pinhole (general tetrad)</option></select></label>
+    <label>View <select id="mode"><option value="0">four-colour</option><option value="1">redshift</option><option value="2">steps</option><option value="3">termination</option></select></label>
+  </div>
+  <div class="row"><button id="retrace">Trace again</button><label><input type="checkbox" id="loop"> keep tracing (load test)</label></div>
+  <canvas id="view" width="512" height="512"></canvas>
+  <p id="hud" class="muted">starting…</p>
+  <p class="muted" id="gpu"></p>
+</main>
+<script type="module" src="./js/g1Page.js"></script>
+</body>
+</html>

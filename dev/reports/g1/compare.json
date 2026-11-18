@@ -1,0 +1,1232 @@
+{
+ "date": "2026-11-18T08:57:47.012Z",
+ "foortGpu": "7896677501d4886328fea90835c08a3a1f950a08",
+ "renderer": "ANGLE (AMD, AMD Radeon(TM) Graphics (0x00001900) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+ "N": 128,
+ "rows": [
+  {
+   "config": "reference",
+   "scene": "kerr_a0_inc17",
+   "program": "trace_kerr_analytic",
+   "foortCamera": {
+    "identical": 100,
+    "classAgree": 100,
+    "stepsAgree": 100,
+    "escDirOver1e3": 0,
+    "escDirMax": 0,
+    "crossingsOff": 0
+   },
+   "pinhole": {
+    "identical": 100,
+    "classAgree": 100,
+    "stepsAgree": 100,
+    "escDirOver1e3": 0,
+    "escDirMax": 0,
+    "crossingsOff": 0
+   },
+   "floor": {
+    "identical": 0.201,
+    "classAgree": 100,
+    "stepsAgree": 99.841,
+    "escDirOver1e3": 0.146,
+    "escDirMax": 0.0174,
+    "crossingsOff": 0.043
+   }
+  },
+  {
+   "config": "reference",
+   "scene": "kerr_a0_inc80",
+   "program": "trace_kerr_analytic",
+   "foortCamera": {
+    "identical": 100,
+    "classAgree": 100,
+    "stepsAgree": 100,
+    "escDirOver1e3": 0,
+    "escDirMax": 0,
+    "crossingsOff": 0
+   },
+   "pinhole": {
+    "identical": 100,
+    "classAgree": 100,
+    "stepsAgree": 100,
+    "escDirOver1e3": 0,
+    "escDirMax": 0,
+    "crossingsOff": 0
+   },
+   "floor": {
+    "identical": 0.281,
+    "classAgree": 100,
+    "stepsAgree": 99.866,
+    "escDirOver1e3": 0.098,
+    "escDirMax": 0.0229,
+    "crossingsOff": 0.11
+   }
+  },
+  {
+   "config": "reference",
+   "scene": "kerr_a0.94_inc17",
+   "program": "trace_kerr_analytic",
+   "foortCamera": {
+    "identical": 100,
+    "classAgree": 100,
+    "stepsAgree": 100,
+    "escDirOver1e3": 0,
+    "escDirMax": 0,
+    "crossingsOff": 0
+   },
+   "pinhole": {
+    "identical": 100,
+    "classAgree": 100,
+    "stepsAgree": 100,
+    "escDirOver1e3": 0,
+    "escDirMax": 0,
+    "crossingsOff": 0
+   },
+   "floor": {
+    "identical": 0,
+    "classAgree": 100,
+    "stepsAgree": 99.902,
+    "escDirOver1e3": 0.018,
+    "escDirMax": 0.0432,
+    "crossingsOff": 0.031
+   }
+  },
+  {
+   "config": "reference",
+   "scene": "kerr_a0.94_inc80",
+   "program": "trace_kerr_analytic",
+   "foortCamera": {
+    "identical": 100,
+    "classAgree": 100,
+    "stepsAgree": 100,
+    "escDirOver1e3": 0,
+    "escDirMax": 0,
+    "crossingsOff": 0
+   },
+   "pinhole": {
+    "identical": 100,
+    "classAgree": 100,
+    "stepsAgree": 100,
+    "escDirOver1e3": 0,
+    "escDirMax": 0,
+    "crossingsOff": 0
+   },
+   "floor": {
+    "identical": 0,
+    "classAgree": 100,
+    "stepsAgree": 99.902,
+    "escDirOver1e3": 0.031,
+    "escDirMax": 0.1,
+    "crossingsOff": 0.085
+   }
+  },
+  {
+   "config": "reference",
+   "scene": "kerr_a0.998_inc80",
+   "program": "trace_kerr_analytic",
+   "foortCamera": {
+    "identical": 100,
+    "classAgree": 100,
+    "stepsAgree": 100,
+    "escDirOver1e3": 0,
+    "escDirMax": 0,
+    "crossingsOff": 0
+   },
+   "pinhole": {
+    "identical": 100,
+    "classAgree": 100,
+    "stepsAgree": 100,
+    "escDirOver1e3": 0,
+    "escDirMax": 0,
+    "crossingsOff": 0
+   },
+   "floor": {
+    "identical": 0,
+    "classAgree": 100,
+    "stepsAgree": 99.908,
+    "escDirOver1e3": 0.031,
+    "escDirMax": 0.00601,
+    "crossingsOff": 0.043
+   }
+  },
+  {
+   "config": "reference",
+   "scene": "johannsen_a0.94_a13_5.5",
+   "program": "closed_johannsen",
+   "foortCamera": {
+    "identical": 100,
+    "classAgree": 100,
+    "stepsAgree": 100,
+    "escDirOver1e3": 0,
+    "escDirMax": 0,
+    "crossingsOff": 0
+   },
+   "pinhole": {
+    "identical": 100,
+    "classAgree": 100,
+    "stepsAgree": 100,
+    "escDirOver1e3": 0,
+    "escDirMax": 0,
+    "crossingsOff": 0
+   },
+   "floor": {
+    "identical": 0,
+    "classAgree": 100,
+    "stepsAgree": 99.878,
+    "escDirOver1e3": 0.012,
+    "escDirMax": 0.00176,
+    "crossingsOff": 0.134
+   }
+  },
+  {
+   "config": "reference",
+   "scene": "mankoNovikov_a0.94_a3_2",
+   "program": "trace+reuse",
+   "foortCamera": {
+    "identical": 100,
+    "classAgree": 100,
+    "stepsAgree": 100,
+    "escDirOver1e3": 0,
+    "escDirMax": 0,
+    "crossingsOff": 0
+   },
+   "pinhole": {
+    "identical": 100,
+    "classAgree": 100,
+    "stepsAgree": 100,
+    "escDirOver1e3": 0,
+    "escDirMax": 0,
+    "crossingsOff": 0
+   },
+   "floor": {
+    "identical": 0,
+    "classAgree": 100,
+    "stepsAgree": 99.908,
+    "escDirOver1e3": 0.024,
+    "escDirMax": 0.0584,
+    "crossingsOff": 0.061
+   }
+  },
+  {
+   "config": "reference",
+   "scene": "rn_Q0.8_inc60",
+   "program": "closed_reissnerNordstrom",
+   "foortCamera": {
+    "identical": 100,
+    "classAgree": 100,
+    "stepsAgree": 100,
+    "escDirOver1e3": 0,
+    "escDirMax": 0,
+    "crossingsOff": 0
+   },
+   "pinhole": {
+    "identical": 100,
+    "classAgree": 100,
+    "stepsAgree": 100,
+    "escDirOver1e3": 0,
+    "escDirMax": 0,
+    "crossingsOff": 0
+   },
+   "floor": {
+    "identical": 0.104,
+    "classAgree": 100,
+    "stepsAgree": 99.939,
+    "escDirOver1e3": 0.085,
+    "escDirMax": 0.00394,
+    "crossingsOff": 0.061
+   }
+  },
+  {
+   "config": "reference",
+   "scene": "st3cr_l0.05",
+   "program": "trace+g34+reuse",
+   "foortCamera": {
+    "identical": 100,
+    "classAgree": 100,
+    "stepsAgree": 100,
+    "escDirOver1e3": 0,
+    "escDirMax": 0,
+    "crossingsOff": 0
+   },
+   "pinhole": {
+    "identical": 100,
+    "classAgree": 100,
+    "stepsAgree": 100,
+    "escDirOver1e3": 0,
+    "escDirMax": 0,
+    "crossingsOff": 0
+   },
+   "floor": {
+    "identical": 0,
+    "classAgree": 99.988,
+    "stepsAgree": 98.468,
+    "escDirOver1e3": 2.588,
+    "escDirMax": 3.05,
+    "crossingsOff": 0.244
+   }
+  },
+  {
+   "config": "reference",
+   "scene": "st3cr_l5e-3",
+   "program": "trace+g34+reuse",
+   "foortCamera": {
+    "identical": 100,
+    "classAgree": 100,
+    "stepsAgree": 100,
+    "escDirOver1e3": 0,
+    "escDirMax": 0,
+    "crossingsOff": 0
+   },
+   "pinhole": {
+    "identical": 100,
+    "classAgree": 100,
+    "stepsAgree": 100,
+    "escDirOver1e3": 0,
+    "escDirMax": 0,
+    "crossingsOff": 0
+   },
+   "floor": {
+    "identical": 0,
+    "classAgree": 98.7,
+    "stepsAgree": 94.794,
+    "escDirOver1e3": 5.804,
+    "escDirMax": 3.36,
+    "crossingsOff": 0.256
+   }
+  },
+  {
+   "config": "reference",
+   "scene": "st3cr_l1e-3",
+   "program": "trace+g34+reuse",
+   "foortCamera": {
+    "identical": 100,
+    "classAgree": 100,
+    "stepsAgree": 100,
+    "escDirOver1e3": 0,
+    "escDirMax": 0,
+    "crossingsOff": 0
+   },
+   "pinhole": {
+    "identical": 100,
+    "classAgree": 100,
+    "stepsAgree": 100,
+    "escDirOver1e3": 0,
+    "escDirMax": 0,
+    "crossingsOff": 0
+   },
+   "floor": {
+    "identical": 0,
+    "classAgree": 98.956,
+    "stepsAgree": 95.001,
+    "escDirOver1e3": 4.773,
+    "escDirMax": 3.03,
+    "crossingsOff": 0.732
+   }
+  },
+  {
+   "config": "reference",
+   "scene": "st3cr_l1e-4",
+   "program": "trace+g34+reuse",
+   "foortCamera": {
+    "identical": 100,
+    "classAgree": 100,
+    "stepsAgree": 100,
+    "escDirOver1e3": 0,
+    "escDirMax": 0,
+    "crossingsOff": 0
+   },
+   "pinhole": {
+    "identical": 100,
+    "classAgree": 100,
+    "stepsAgree": 100,
+    "escDirOver1e3": 0,
+    "escDirMax": 0,
+    "crossingsOff": 0
+   },
+   "floor": {
+    "identical": 0,
+    "classAgree": 98.492,
+    "stepsAgree": 94.916,
+    "escDirOver1e3": 2.74,
+    "escDirMax": 3.09,
+    "crossingsOff": 1.654
+   }
+  },
+  {
+   "config": "reference",
+   "scene": "st3cr_l0",
+   "program": "trace+g34+reuse",
+   "foortCamera": {
+    "identical": 100,
+    "classAgree": 100,
+    "stepsAgree": 100,
+    "escDirOver1e3": 0,
+    "escDirMax": 0,
+    "crossingsOff": 0
+   },
+   "pinhole": {
+    "identical": 100,
+    "classAgree": 100,
+    "stepsAgree": 100,
+    "escDirOver1e3": 0,
+    "escDirMax": 0,
+    "crossingsOff": 0
+   },
+   "floor": {
+    "identical": 0.031,
+    "classAgree": 100,
+    "stepsAgree": 99.951,
+    "escDirOver1e3": 0.061,
+    "escDirMax": 0.00665,
+    "crossingsOff": 0.049
+   }
+  },
+  {
+   "config": "high",
+   "scene": "kerr_a0_inc17",
+   "program": "trace_kerr_analytic",
+   "foortCamera": {
+    "identical": 100,
+    "classAgree": 100,
+    "stepsAgree": 100,
+    "escDirOver1e3": 0,
+    "escDirMax": 0,
+    "crossingsOff": 0
+   },
+   "pinhole": {
+    "identical": 100,
+    "classAgree": 100,
+    "stepsAgree": 100,
+    "escDirOver1e3": 0,
+    "escDirMax": 0,
+    "crossingsOff": 0
+   },
+   "floor": {
+    "identical": 0.165,
+    "classAgree": 100,
+    "stepsAgree": 99.854,
+    "escDirOver1e3": 0.134,
+    "escDirMax": 0.0134,
+    "crossingsOff": 0.049
+   }
+  },
+  {
+   "config": "high",
+   "scene": "kerr_a0_inc80",
+   "program": "trace_kerr_analytic",
+   "foortCamera": {
+    "identical": 100,
+    "classAgree": 100,
+    "stepsAgree": 100,
+    "escDirOver1e3": 0,
+    "escDirMax": 0,
+    "crossingsOff": 0
+   },
+   "pinhole": {
+    "identical": 100,
+    "classAgree": 100,
+    "stepsAgree": 100,
+    "escDirOver1e3": 0,
+    "escDirMax": 0,
+    "crossingsOff": 0
+   },
+   "floor": {
+    "identical": 0.372,
+    "classAgree": 100,
+    "stepsAgree": 99.915,
+    "escDirOver1e3": 0.11,
+    "escDirMax": 0.0185,
+    "crossingsOff": 0.085
+   }
+  },
+  {
+   "config": "high",
+   "scene": "kerr_a0.94_inc17",
+   "program": "trace_kerr_analytic",
+   "foortCamera": {
+    "identical": 100,
+    "classAgree": 100,
+    "stepsAgree": 100,
+    "escDirOver1e3": 0,
+    "escDirMax": 0,
+    "crossingsOff": 0
+   },
+   "pinhole": {
+    "identical": 100,
+    "classAgree": 100,
+    "stepsAgree": 100,
+    "escDirOver1e3": 0,
+    "escDirMax": 0,
+    "crossingsOff": 0
+   },
+   "floor": {
+    "identical": 0,
+    "classAgree": 100,
+    "stepsAgree": 99.89,
+    "escDirOver1e3": 0.031,
+    "escDirMax": 0.0369,
+    "crossingsOff": 0.043
+   }
+  },
+  {
+   "config": "high",
+   "scene": "kerr_a0.94_inc80",
+   "program": "trace_kerr_analytic",
+   "foortCamera": {
+    "identical": 100,
+    "classAgree": 100,
+    "stepsAgree": 100,
+    "escDirOver1e3": 0,
+    "escDirMax": 0,
+    "crossingsOff": 0
+   },
+   "pinhole": {
+    "identical": 100,
+    "classAgree": 100,
+    "stepsAgree": 100,
+    "escDirOver1e3": 0,
+    "escDirMax": 0,
+    "crossingsOff": 0
+   },
+   "floor": {
+    "identical": 0,
+    "classAgree": 100,
+    "stepsAgree": 99.902,
+    "escDirOver1e3": 0.024,
+    "escDirMax": 0.00128,
+    "crossingsOff": 0.043
+   }
+  },
+  {
+   "config": "high",
+   "scene": "kerr_a0.998_inc80",
+   "program": "trace_kerr_analytic",
+   "foortCamera": {
+    "identical": 100,
+    "classAgree": 100,
+    "stepsAgree": 100,
+    "escDirOver1e3": 0,
+    "escDirMax": 0,
+    "crossingsOff": 0
+   },
+   "pinhole": {
+    "identical": 100,
+    "classAgree": 100,
+    "stepsAgree": 100,
+    "escDirOver1e3": 0,
+    "escDirMax": 0,
+    "crossingsOff": 0
+   },
+   "floor": {
+    "identical": 0,
+    "classAgree": 100,
+    "stepsAgree": 99.872,
+    "escDirOver1e3": 0.018,
+    "escDirMax": 0.0145,
+    "crossingsOff": 0.055
+   }
+  },
+  {
+   "config": "high",
+   "scene": "johannsen_a0.94_a13_5.5",
+   "program": "closed_johannsen",
+   "foortCamera": {
+    "identical": 100,
+    "classAgree": 100,
+    "stepsAgree": 100,
+    "escDirOver1e3": 0,
+    "escDirMax": 0,
+    "crossingsOff": 0
+   },
+   "pinhole": {
+    "identical": 100,
+    "classAgree": 100,
+    "stepsAgree": 100,
+    "escDirOver1e3": 0,
+    "escDirMax": 0,
+    "crossingsOff": 0
+   },
+   "floor": {
+    "identical": 0,
+    "classAgree": 100,
+    "stepsAgree": 99.89,
+    "escDirOver1e3": 0.037,
+    "escDirMax": 0.00203,
+    "crossingsOff": 0.11
+   }
+  },
+  {
+   "config": "high",
+   "scene": "mankoNovikov_a0.94_a3_2",
+   "program": "trace+reuse",
+   "foortCamera": {
+    "identical": 100,
+    "classAgree": 100,
+    "stepsAgree": 100,
+    "escDirOver1e3": 0,
+    "escDirMax": 0,
+    "crossingsOff": 0
+   },
+   "pinhole": {
+    "identical": 100,
+    "classAgree": 100,
+    "stepsAgree": 100,
+    "escDirOver1e3": 0,
+    "escDirMax": 0,
+    "crossingsOff": 0
+   },
+   "floor": {
+    "identical": 0,
+    "classAgree": 100,
+    "stepsAgree": 99.896,
+    "escDirOver1e3": 0.024,
+    "escDirMax": 0.00472,
+    "crossingsOff": 0.055
+   }
+  },
+  {
+   "config": "high",
+   "scene": "rn_Q0.8_inc60",
+   "program": "closed_reissnerNordstrom",
+   "foortCamera": {
+    "identical": 100,
+    "classAgree": 100,
+    "stepsAgree": 100,
+    "escDirOver1e3": 0,
+    "escDirMax": 0,
+    "crossingsOff": 0
+   },
+   "pinhole": {
+    "identical": 100,
+    "classAgree": 100,
+    "stepsAgree": 100,
+    "escDirOver1e3": 0,
+    "escDirMax": 0,
+    "crossingsOff": 0
+   },
+   "floor": {
+    "identical": 0.171,
+    "classAgree": 100,
+    "stepsAgree": 99.976,
+    "escDirOver1e3": 0.073,
+    "escDirMax": 0.00456,
+    "crossingsOff": 0.055
+   }
+  },
+  {
+   "config": "high",
+   "scene": "st3cr_l0.05",
+   "program": "trace+g34+reuse",
+   "foortCamera": {
+    "identical": 100,
+    "classAgree": 100,
+    "stepsAgree": 100,
+    "escDirOver1e3": 0,
+    "escDirMax": 0,
+    "crossingsOff": 0
+   },
+   "pinhole": {
+    "identical": 100,
+    "classAgree": 100,
+    "stepsAgree": 100,
+    "escDirOver1e3": 0,
+    "escDirMax": 0,
+    "crossingsOff": 0
+   },
+   "floor": {
+    "identical": 0,
+    "classAgree": 99.945,
+    "stepsAgree": 98.505,
+    "escDirOver1e3": 2.502,
+    "escDirMax": 3.05,
+    "crossingsOff": 0.244
+   }
+  },
+  {
+   "config": "high",
+   "scene": "st3cr_l5e-3",
+   "program": "trace+g34+reuse",
+   "foortCamera": {
+    "identical": 100,
+    "classAgree": 100,
+    "stepsAgree": 100,
+    "escDirOver1e3": 0,
+    "escDirMax": 0,
+    "crossingsOff": 0
+   },
+   "pinhole": {
+    "identical": 100,
+    "classAgree": 100,
+    "stepsAgree": 100,
+    "escDirOver1e3": 0,
+    "escDirMax": 0,
+    "crossingsOff": 0
+   },
+   "floor": {
+    "identical": 0,
+    "classAgree": 99.695,
+    "stepsAgree": 97.693,
+    "escDirOver1e3": 3.619,
+    "escDirMax": 2.73,
+    "crossingsOff": 0.275
+   }
+  },
+  {
+   "config": "high",
+   "scene": "st3cr_l1e-3",
+   "program": "trace+g34+reuse",
+   "foortCamera": {
+    "identical": 100,
+    "classAgree": 100,
+    "stepsAgree": 100,
+    "escDirOver1e3": 0,
+    "escDirMax": 0,
+    "crossingsOff": 0
+   },
+   "pinhole": {
+    "identical": 100,
+    "classAgree": 100,
+    "stepsAgree": 100,
+    "escDirOver1e3": 0,
+    "escDirMax": 0,
+    "crossingsOff": 0
+   },
+   "floor": {
+    "identical": 0,
+    "classAgree": 99.78,
+    "stepsAgree": 97.784,
+    "escDirOver1e3": 3.149,
+    "escDirMax": 2.99,
+    "crossingsOff": 0.751
+   }
+  },
+  {
+   "config": "high",
+   "scene": "st3cr_l1e-4",
+   "program": "trace+g34+reuse",
+   "foortCamera": {
+    "identical": 100,
+    "classAgree": 100,
+    "stepsAgree": 100,
+    "escDirOver1e3": 0,
+    "escDirMax": 0,
+    "crossingsOff": 0
+   },
+   "pinhole": {
+    "identical": 100,
+    "classAgree": 100,
+    "stepsAgree": 100,
+    "escDirOver1e3": 0,
+    "escDirMax": 0,
+    "crossingsOff": 0
+   },
+   "floor": {
+    "identical": 0,
+    "classAgree": 99.78,
+    "stepsAgree": 98.456,
+    "escDirOver1e3": 1.831,
+    "escDirMax": 2.3,
+    "crossingsOff": 1.788
+   }
+  },
+  {
+   "config": "high",
+   "scene": "st3cr_l0",
+   "program": "trace+g34+reuse",
+   "foortCamera": {
+    "identical": 100,
+    "classAgree": 100,
+    "stepsAgree": 100,
+    "escDirOver1e3": 0,
+    "escDirMax": 0,
+    "crossingsOff": 0
+   },
+   "pinhole": {
+    "identical": 100,
+    "classAgree": 100,
+    "stepsAgree": 100,
+    "escDirOver1e3": 0,
+    "escDirMax": 0,
+    "crossingsOff": 0
+   },
+   "floor": {
+    "identical": 0.031,
+    "classAgree": 100,
+    "stepsAgree": 99.951,
+    "escDirOver1e3": 0.061,
+    "escDirMax": 0.00665,
+    "crossingsOff": 0.049
+   }
+  },
+  {
+   "config": "normal",
+   "scene": "kerr_a0_inc17",
+   "program": "trace_kerr_analytic+bs3",
+   "foortCamera": {
+    "identical": 100,
+    "classAgree": 100,
+    "stepsAgree": 100,
+    "escDirOver1e3": 0,
+    "escDirMax": 0,
+    "crossingsOff": 0
+   },
+   "pinhole": {
+    "identical": 100,
+    "classAgree": 100,
+    "stepsAgree": 100,
+    "escDirOver1e3": 0,
+    "escDirMax": 0,
+    "crossingsOff": 0
+   },
+   "floor": {
+    "identical": 0.043,
+    "classAgree": 100,
+    "stepsAgree": 99.536,
+    "escDirOver1e3": 0.146,
+    "escDirMax": 0.00876,
+    "crossingsOff": 0.085
+   }
+  },
+  {
+   "config": "normal",
+   "scene": "kerr_a0_inc80",
+   "program": "trace_kerr_analytic+bs3",
+   "foortCamera": {
+    "identical": 100,
+    "classAgree": 100,
+    "stepsAgree": 100,
+    "escDirOver1e3": 0,
+    "escDirMax": 0,
+    "crossingsOff": 0
+   },
+   "pinhole": {
+    "identical": 100,
+    "classAgree": 100,
+    "stepsAgree": 100,
+    "escDirOver1e3": 0,
+    "escDirMax": 0,
+    "crossingsOff": 0
+   },
+   "floor": {
+    "identical": 0.092,
+    "classAgree": 100,
+    "stepsAgree": 99.634,
+    "escDirOver1e3": 0.146,
+    "escDirMax": 0.00981,
+    "crossingsOff": 0.098
+   }
+  },
+  {
+   "config": "normal",
+   "scene": "kerr_a0.94_inc17",
+   "program": "trace_kerr_analytic+bs3",
+   "foortCamera": {
+    "identical": 100,
+    "classAgree": 100,
+    "stepsAgree": 100,
+    "escDirOver1e3": 0,
+    "escDirMax": 0,
+    "crossingsOff": 0
+   },
+   "pinhole": {
+    "identical": 100,
+    "classAgree": 100,
+    "stepsAgree": 100,
+    "escDirOver1e3": 0,
+    "escDirMax": 0,
+    "crossingsOff": 0
+   },
+   "floor": {
+    "identical": 0,
+    "classAgree": 100,
+    "stepsAgree": 99.744,
+    "escDirOver1e3": 0.037,
+    "escDirMax": 0.0174,
+    "crossingsOff": 0.043
+   }
+  },
+  {
+   "config": "normal",
+   "scene": "kerr_a0.94_inc80",
+   "program": "trace_kerr_analytic+bs3",
+   "foortCamera": {
+    "identical": 100,
+    "classAgree": 100,
+    "stepsAgree": 100,
+    "escDirOver1e3": 0,
+    "escDirMax": 0,
+    "crossingsOff": 0
+   },
+   "pinhole": {
+    "identical": 100,
+    "classAgree": 100,
+    "stepsAgree": 100,
+    "escDirOver1e3": 0,
+    "escDirMax": 0,
+    "crossingsOff": 0
+   },
+   "floor": {
+    "identical": 0,
+    "classAgree": 100,
+    "stepsAgree": 99.719,
+    "escDirOver1e3": 0.043,
+    "escDirMax": 0.01,
+    "crossingsOff": 0.104
+   }
+  },
+  {
+   "config": "normal",
+   "scene": "kerr_a0.998_inc80",
+   "program": "trace_kerr_analytic+bs3",
+   "foortCamera": {
+    "identical": 100,
+    "classAgree": 100,
+    "stepsAgree": 100,
+    "escDirOver1e3": 0,
+    "escDirMax": 0,
+    "crossingsOff": 0
+   },
+   "pinhole": {
+    "identical": 100,
+    "classAgree": 100,
+    "stepsAgree": 100,
+    "escDirOver1e3": 0,
+    "escDirMax": 0,
+    "crossingsOff": 0
+   },
+   "floor": {
+    "identical": 0,
+    "classAgree": 100,
+    "stepsAgree": 99.707,
+    "escDirOver1e3": 0.037,
+    "escDirMax": 0.00513,
+    "crossingsOff": 0.043
+   }
+  },
+  {
+   "config": "normal",
+   "scene": "johannsen_a0.94_a13_5.5",
+   "program": "closed_johannsen+bs3",
+   "foortCamera": {
+    "identical": 100,
+    "classAgree": 100,
+    "stepsAgree": 100,
+    "escDirOver1e3": 0,
+    "escDirMax": 0,
+    "crossingsOff": 0
+   },
+   "pinhole": {
+    "identical": 100,
+    "classAgree": 100,
+    "stepsAgree": 100,
+    "escDirOver1e3": 0,
+    "escDirMax": 0,
+    "crossingsOff": 0
+   },
+   "floor": {
+    "identical": 0,
+    "classAgree": 100,
+    "stepsAgree": 99.658,
+    "escDirOver1e3": 0.024,
+    "escDirMax": 0.0126,
+    "crossingsOff": 0.104
+   }
+  },
+  {
+   "config": "normal",
+   "scene": "mankoNovikov_a0.94_a3_2",
+   "program": "trace+reuse+bs3",
+   "foortCamera": {
+    "identical": 100,
+    "classAgree": 100,
+    "stepsAgree": 100,
+    "escDirOver1e3": 0,
+    "escDirMax": 0,
+    "crossingsOff": 0
+   },
+   "pinhole": {
+    "identical": 100,
+    "classAgree": 100,
+    "stepsAgree": 100,
+    "escDirOver1e3": 0,
+    "escDirMax": 0,
+    "crossingsOff": 0
+   },
+   "floor": {
+    "identical": 0.024,
+    "classAgree": 100,
+    "stepsAgree": 98.401,
+    "escDirOver1e3": 0.037,
+    "escDirMax": 0.0229,
+    "crossingsOff": 0.073
+   }
+  },
+  {
+   "config": "normal",
+   "scene": "rn_Q0.8_inc60",
+   "program": "closed_reissnerNordstrom+bs3",
+   "foortCamera": {
+    "identical": 100,
+    "classAgree": 100,
+    "stepsAgree": 100,
+    "escDirOver1e3": 0,
+    "escDirMax": 0,
+    "crossingsOff": 0
+   },
+   "pinhole": {
+    "identical": 100,
+    "classAgree": 100,
+    "stepsAgree": 100,
+    "escDirOver1e3": 0,
+    "escDirMax": 0,
+    "crossingsOff": 0
+   },
+   "floor": {
+    "identical": 0.043,
+    "classAgree": 100,
+    "stepsAgree": 99.756,
+    "escDirOver1e3": 0.061,
+    "escDirMax": 0.00323,
+    "crossingsOff": 0.098
+   }
+  },
+  {
+   "config": "normal",
+   "scene": "st3cr_l0.05",
+   "program": "trace+g34+reuse",
+   "foortCamera": {
+    "identical": 100,
+    "classAgree": 100,
+    "stepsAgree": 100,
+    "escDirOver1e3": 0,
+    "escDirMax": 0,
+    "crossingsOff": 0
+   },
+   "pinhole": {
+    "identical": 100,
+    "classAgree": 100,
+    "stepsAgree": 100,
+    "escDirOver1e3": 0,
+    "escDirMax": 0,
+    "crossingsOff": 0
+   },
+   "floor": {
+    "identical": 0,
+    "classAgree": 99.945,
+    "stepsAgree": 98.505,
+    "escDirOver1e3": 2.502,
+    "escDirMax": 3.05,
+    "crossingsOff": 0.244
+   }
+  },
+  {
+   "config": "normal",
+   "scene": "st3cr_l5e-3",
+   "program": "trace+g34+reuse",
+   "foortCamera": {
+    "identical": 100,
+    "classAgree": 100,
+    "stepsAgree": 100,
+    "escDirOver1e3": 0,
+    "escDirMax": 0,
+    "crossingsOff": 0
+   },
+   "pinhole": {
+    "identical": 100,
+    "classAgree": 100,
+    "stepsAgree": 100,
+    "escDirOver1e3": 0,
+    "escDirMax": 0,
+    "crossingsOff": 0
+   },
+   "floor": {
+    "identical": 0,
+    "classAgree": 99.695,
+    "stepsAgree": 97.693,
+    "escDirOver1e3": 3.619,
+    "escDirMax": 2.73,
+    "crossingsOff": 0.275
+   }
+  },
+  {
+   "config": "normal",
+   "scene": "st3cr_l1e-3",
+   "program": "trace+g34+reuse",
+   "foortCamera": {
+    "identical": 100,
+    "classAgree": 100,
+    "stepsAgree": 100,
+    "escDirOver1e3": 0,
+    "escDirMax": 0,
+    "crossingsOff": 0
+   },
+   "pinhole": {
+    "identical": 100,
+    "classAgree": 100,
+    "stepsAgree": 100,
+    "escDirOver1e3": 0,
+    "escDirMax": 0,
+    "crossingsOff": 0
+   },
+   "floor": {
+    "identical": 0,
+    "classAgree": 99.78,
+    "stepsAgree": 97.784,
+    "escDirOver1e3": 3.149,
+    "escDirMax": 2.99,
+    "crossingsOff": 0.751
+   }
+  },
+  {
+   "config": "normal",
+   "scene": "st3cr_l1e-4",
+   "program": "trace+g34+reuse",
+   "foortCamera": {
+    "identical": 100,
+    "classAgree": 100,
+    "stepsAgree": 100,
+    "escDirOver1e3": 0,
+    "escDirMax": 0,
+    "crossingsOff": 0
+   },
+   "pinhole": {
+    "identical": 100,
+    "classAgree": 100,
+    "stepsAgree": 100,
+    "escDirOver1e3": 0,
+    "escDirMax": 0,
+    "crossingsOff": 0
+   },
+   "floor": {
+    "identical": 0,
+    "classAgree": 99.78,
+    "stepsAgree": 98.456,
+    "escDirOver1e3": 1.831,
+    "escDirMax": 2.3,
+    "crossingsOff": 1.788
+   }
+  },
+  {
+   "config": "normal",
+   "scene": "st3cr_l0",
+   "program": "trace+g34+reuse",
+   "foortCamera": {
+    "identical": 100,
+    "classAgree": 100,
+    "stepsAgree": 100,
+    "escDirOver1e3": 0,
+    "escDirMax": 0,
+    "crossingsOff": 0
+   },
+   "pinhole": {
+    "identical": 100,
+    "classAgree": 100,
+    "stepsAgree": 100,
+    "escDirOver1e3": 0,
+    "escDirMax": 0,
+    "crossingsOff": 0
+   },
+   "floor": {
+    "identical": 0.031,
+    "classAgree": 100,
+    "stepsAgree": 99.951,
+    "escDirOver1e3": 0.061,
+    "escDirMax": 0.00665,
+    "crossingsOff": 0.049
+   }
+  }
+ ],
+ "timing": [
+  {
+   "scene": "kerr_a0_inc17",
+   "N": 512,
+   "foortGpuWallMs": 85.80000001192093,
+   "oursWallMs": 150,
+   "oursFrames": 9
+  },
+  {
+   "scene": "kerr_a0_inc80",
+   "N": 512,
+   "foortGpuWallMs": 75.39999997615814,
+   "oursWallMs": 150,
+   "oursFrames": 9
+  },
+  {
+   "scene": "kerr_a0.94_inc17",
+   "N": 512,
+   "foortGpuWallMs": 80.69999998807907,
+   "oursWallMs": 149.69999998807907,
+   "oursFrames": 9
+  },
+  {
+   "scene": "kerr_a0.94_inc80",
+   "N": 512,
+   "foortGpuWallMs": 76.5,
+   "oursWallMs": 150.20000004768372,
+   "oursFrames": 9
+  },
+  {
+   "scene": "kerr_a0.998_inc80",
+   "N": 512,
+   "foortGpuWallMs": 85.80000001192093,
+   "oursWallMs": 166.89999997615814,
+   "oursFrames": 10
+  },
+  {
+   "scene": "johannsen_a0.94_a13_5.5",
+   "N": 512,
+   "foortGpuWallMs": 133.79999995231628,
+   "oursWallMs": 200.19999998807907,
+   "oursFrames": 12
+  },
+  {
+   "scene": "mankoNovikov_a0.94_a3_2",
+   "N": 512,
+   "foortGpuWallMs": 371.80000001192093,
+   "oursWallMs": 655.7999999523163,
+   "oursFrames": 41
+  },
+  {
+   "scene": "rn_Q0.8_inc60",
+   "N": 512,
+   "foortGpuWallMs": 79.90000003576279,
+   "oursWallMs": 150.19999998807907,
+   "oursFrames": 9
+  },
+  {
+   "scene": "st3cr_l0.05",
+   "N": 256,
+   "foortGpuWallMs": 294.4000000357628,
+   "oursWallMs": 284.4000000357628,
+   "oursFrames": 3
+  },
+  {
+   "scene": "st3cr_l5e-3",
+   "N": 256,
+   "foortGpuWallMs": 469.0999999642372,
+   "oursWallMs": 1268.300000011921,
+   "oursFrames": 46
+  },
+  {
+   "scene": "st3cr_l1e-3",
+   "N": 256,
+   "foortGpuWallMs": 460.60000002384186,
+   "oursWallMs": 1135,
+   "oursFrames": 34
+  },
+  {
+   "scene": "st3cr_l1e-4",
+   "N": 256,
+   "foortGpuWallMs": 550.6000000238419,
+   "oursWallMs": 1034.5999999642372,
+   "oursFrames": 35
+  },
+  {
+   "scene": "st3cr_l0",
+   "N": 256,
+   "foortGpuWallMs": 128.19999998807907,
+   "oursWallMs": 300.4000000357628,
+   "oursFrames": 18
+  }
+ ]
+}
