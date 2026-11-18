@@ -442,3 +442,27 @@ Branch `g6-physical`.
 Headless scenario check (engines off): parking orbit stays at 10.0000 M for 400 M; hover-6m falls in after 15 M without its assist; photon-orbit dive falls in after 51 M; fall into Kerr at τ = 15 M (t = 22 M, dt/dτ = 616 at the end); fuzzball dive reaches 0.0024 M and returns; the λ = 0 dive reaches the throat at τ = 7.4 M while t = 3078 M.
 
 Smoke run (1280 × 800, Chrome): 60 fps, frame p90 16.9 ms in the parking orbit with the map open; fall into Kerr: the HUD reads γ = 23.6 against the ZAMO and "plunging" just before the horizon.
+
+## G7 — Units, teaching overlays, quality, export (2026-11-18)
+
+Branch `g7-polish`.
+
+### Delivered
+
+- **Physical units** throughout: HUD clocks and radii, the time rate, g-loads, tidal warnings, the map's scale bar (units setting; F7 default "units of M", g-loads at Sgr A*).
+- **Teaching overlays:** clocks card (τ vs t since the start, ratio), the ergoregion card ("Why can't I hover here?"), scenario cards.
+- **Automatic quality and phone defaults** (face 128 on phones, step-down on slow devices, smaller canvas on phones).
+- **Export:** PNG screenshots with the state and link inside (K); video at fixed game-time steps (V); **photo mode** (O): every pixel traced directly at full quality.
+
+### Tests
+
+| suite | result |
+|---|---|
+| Vitest | 72/72 |
+| Playwright | 31/31. New (G7): Sgr A* units show km/AU and s/min/h in the HUD; automatic quality = 256 on the desktop; the screenshot downloads a PNG whose text chunks hold `foort-flight-state` and the link; a video records ≥ 60 frames after the encoder starts and saves a non-empty WebM; photo mode traces every pixel, reports its time and lets go; the λ = 0 dive's clocks card shows the outside clock running > 5× faster; the ergosphere scenario opens the ergoregion card. The G6 hover test now samples until 40 M of game time have passed (it failed under two parallel browsers, which slow the game clock) |
+| type check | clean |
+
+### Notes
+
+- The first video in a page starts about 3 s after V (Chrome's encoder); the HUD says so meanwhile.
+- With physical units the HUD lines get longer; on phones the HUD font is smaller (G4 CSS).

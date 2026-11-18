@@ -7,7 +7,9 @@ import { createSpacetime } from './physics/spacetime.js';
 import { freeStart, freeStep, freeFrame, allowed } from './game/freeMode.js';
 import { createPhysical, physicalStart, shipFromFree, freeAttitudeFromShip } from './game/physicalMode.js';
 import { createControls } from './game/controls.js';
-import { hudLines, hudPhysicalLines, HELP_HTML, ENDINGS, drawMarkers } from './game/hud.js';
+import { hudLines, hudPhysicalLines, HELP_HTML, ENDINGS, drawMarkers, ERGO_CARD, clockCard } from './game/hud.js';
+import { gameUnits } from './game/units.js';
+import { snapshotPng, download, videoFormat } from '../vendor/foort-gpu/js/export.js';
 import { Predictor } from './game/predictor.js';
 import { createMap, kerrRadii } from './game/map.js';
 import { loadScenarios, buildScenario } from './game/scenarios.js';
@@ -29,9 +31,13 @@ const DEG = Math.PI / 180;
 const spacetimeOf = (s) => (s.spacetime === 'kerr' ? createSpacetime('kerr', { a: Number(s.a) })
   : s.spacetime === 'st3crBH' ? createSpacetime('st3crBH', {}) : createSpacetime('st3cr', { lambda: Number(s.lambda) }));
 
+/** a phone or small tablet: coarse pointer and a small screen (plan G7: phone defaults) */
+const PHONE = matchMedia('(pointer: coarse)').matches && Math.min(screen.width, screen.height) < 820;
+/** the automatic cubemap face size: 128 on phones, else 256 until a medium cubemap proves too slow on this device */
+let autoFace = PHONE ? 128 : 256;
 /** renderer settings from the game settings @param {Record<string, any>} s */
 const renderSettings = (s) => ({
-  faceN: Number(s.faceN), tier: s.tier, fov: Number(s.fov) * DEG, colorMode: Number(s.color), skyMode: Number(s.sky), sigmaN: Number(s.sigmaN),
+  faceN: s.faceN === 'auto' ? autoFace : Number(s.faceN), tier: s.tier, fov: Number(s.fov) * DEG, colorMode: Number(s.color), skyMode: Number(s.sky), sigmaN: Number(s.sigmaN),
   T0: Number(s.T0), exposure: Number(s.exposure), starBrightness: Number(s.starBrightness), inset: !!s.inset,
   em: { mu: Number(s.mu), gamma: Number(s.gamma), sigma: Number(s.sigma), p: 3, fudge: 1, maxPasses: 0, circumferential: true },
 });
@@ -77,7 +83,7 @@ async function main() {
   const resize = () => {
     const r = canvas.getBoundingClientRect(), dpr = Math.min(window.devicePixelRatio || 1, 1.5);
     let w = Math.max(1, Math.round(r.width * dpr)), h = Math.max(1, Math.round(r.height * dpr));
-    const k = Math.sqrt(Math.min(1, 1.6e6 / (w * h)));
+    const k = Math.sqrt(Math.min(1, (PHONE ? 0.8e6 : 1.6e6) / (w * h)));
     w = Math.round(w * k); h = Math.round(h * k);
     if (canvas.width !== w || canvas.height !== h) { canvas.width = w; canvas.height = h; }
     overlay.width = Math.round(r.width * (window.devicePixelRatio || 1)); overlay.height = Math.round(r.height * (window.devicePixelRatio || 1));
@@ -86,7 +92,12 @@ async function main() {
   resize();
 
   const controls = createControls(canvas, { lookPerPixel: () => Number(settings.fov) * DEG / Math.max(canvas.clientWidth, 1) * 0.8 });
-  let paused = false, note = '', help = false;
+  let paused = false, note = '', help = false, photoOn = false, ergoShown = false;
+  /** video recording (V): MediaRecorder on the canvas, one video frame per game frame, fixed 1/60 s steps @type {any} */
+  let rec = null;
+  /** the clock comparison since the start of the flight */
+  let clocks = { tau0: 0, t0: 0, tau: 0, t: 0, ratios: /** @type {number[]} */ ([]) };
+  const resetClocks = (/** @type {number} */ tau, /** @type {number} */ t) => { clocks = { tau0: tau, t0: t, tau, t, ratios: [] }; };
   const toggleHelp = (/** @type {boolean} */ on) => { help = on; $('help').hidden = !on; };
   $('help').innerHTML = HELP_HTML + '<p><button id="helpClose">Close</button></p>';
   $('helpClose').onclick = () => toggleHelp(false);
@@ -119,6 +130,7 @@ async function main() {
     if (r.note) note = r.note;
     mode = 'physical'; ended = ''; $('ending').hidden = true;
     predictor = new Predictor(S);
+    resetClocks(phys.ship.tau, S.toTracer(phys.ship.X)[0]); ergoShown = false;
     settings.mode = 'physical'; panel.render(); updateShipButtons();
   };
   /** physical -> free (keeps the event and attitude) */
@@ -146,6 +158,8 @@ async function main() {
       free = { ...free, X: /** @type {any} */ (b.ship).X };
     } else { free = { ...(/** @type {any} */ (b.free)), speed: free.speed }; mode = 'free'; phys = null; }
     settings.mode = mode;
+    { const X0 = mode === 'physical' && phys ? phys.ship.X : free.X; resetClocks(mode === 'physical' && phys ? phys.ship.tau : free.tau, S.toTracer(X0)[0]); }
+    ergoShown = false;
     $('notes').innerHTML = `<b>${sc.title}</b> — ${sc.notes} <button class="link" id="notesClose">hide</button>`;
     $('notes').hidden = false;
     $('notesClose').onclick = () => { $('notes').hidden = true; };
@@ -187,6 +201,56 @@ async function main() {
   let prev = NaN, hudT = 0, saveT = 0, predT = 0, tidalT = 0, tidal = NaN;
   /** @type {any} */
   let lastFrame = null;
+  /** @type {any} */
+  let lastTracer = null;
+  const units = () => gameUnits(String(settings.units));
+  const caption = () => {
+    const U = units(), p = lastTracer?.pos ?? [0, 0, 0, 0];
+    const what = S.id === 'kerr' ? `Kerr black hole, a = ${S.params.a}` : S.id === 'st3crBH' ? 'ST3Cr fuzzball, λ = 0 (black hole)' : `ST3Cr fuzzball, λ = ${/** @type {any} */ (S.params).lambda}`;
+    return `${what} · r = ${U.length(p[1])}, θ = ${(p[2] * 180 / Math.PI).toFixed(1)}° · ${mode === 'physical' ? 'spaceship' : 'free camera'}${scenario ? ` · ${scenario.title}` : ''} · FOORT Flight`;
+  };
+  const stamp = () => new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
+  /** PNG with the state and link embedded (plan G7) */
+  const screenshot = async () => {
+    const url = shareUrl(settings, free) + (scenario ? `&scenario=${scenario.id}` : '');
+    const state = { mode, scenario: scenario?.id ?? null, spacetime: { id: S.id, params: S.params }, ship: mode === 'physical' && phys ? phys.ship : null, camera: mode === 'free' ? free : null, settings };
+    const png = await snapshotPng(canvas, { url, texts: { 'foort-flight-state': JSON.stringify(state) }, overlay: { lines: [caption()] } });
+    download(new Blob([/** @type {any} */ (png)], { type: 'image/png' }), `foort-flight-${stamp()}.png`);
+    lastPng = png;
+    note = 'screenshot saved (the state and a link are inside the PNG)';
+  };
+  /** @type {Uint8Array|null} */
+  let lastPng = null;
+  /** start / stop a video: one frame per game frame at fixed 1/60 s of game time (plan G7: fixed proper-time steps) */
+  const toggleVideo = () => {
+    if (rec) {
+      const r = rec; rec = null; $('rec').hidden = true;
+      r.recorder.onstop = () => { r.track.stop(); lastVideo = new Blob(r.parts, { type: r.fmt.mime.split(';')[0] }); download(lastVideo, `foort-flight-${stamp()}.${r.fmt.ext}`); };
+      r.recorder.stop();
+      return;
+    }
+    const fmt = videoFormat();
+    if (!fmt) { note = 'this browser cannot record video'; return; }
+    const stream = /** @type {any} */ (canvas).captureStream(0);
+    const track = stream.getVideoTracks()[0];
+    const recorder = new MediaRecorder(stream, { mimeType: fmt.mime, videoBitsPerSecond: 16e6 });
+    /** @type {Blob[]} */
+    const parts = [];
+    recorder.ondataavailable = (e) => { if (e.data.size) parts.push(e.data); };
+    rec = { recorder, track, parts, fmt, frames: 0, ready: false };
+    const r0 = rec;
+    recorder.onstart = () => { r0.ready = true; };
+    recorder.start(1000);
+    $('rec').hidden = false;
+  };
+  /** @type {Blob|null} */
+  let lastVideo = null;
+  /** photo mode: pause and trace the view directly at full quality (O, or move to leave) */
+  const togglePhoto = () => {
+    photoOn = !photoOn;
+    if (photoOn && lastTracer) renderer.startPhoto(lastTracer); else { photoOn = false; renderer.stopPhoto(); }
+    $('photo').hidden = !photoOn;
+  };
   const frame = (/** @type {number} */ now) => {
     const dt = Number.isFinite(prev) ? Math.min((now - prev) / 1000, 0.1) : 0;
     if (Number.isFinite(prev)) { intervals.push(now - prev); if (intervals.length > 240) intervals.shift(); }
@@ -196,12 +260,24 @@ async function main() {
     if (input.actions.has('help')) toggleHelp(!help);
     if (input.actions.has('map')) setMap(!mapOn);
     if (input.actions.has('escape') && help) toggleHelp(false);
+    if (input.actions.has('screenshot')) screenshot();
+    if (input.actions.has('video')) toggleVideo();
+    if (input.actions.has('photo')) togglePhoto();
+    if (photoOn && (input.move.some((x) => x !== 0) || input.engine)) togglePhoto();
     const rate = Number(settings.timeRate);
+    const dtSim = rec?.ready ? 1 / 60 : dt;
+    const frozen = paused || photoOn;
     /** @type {{pos: number[], frame: any, g: number[][]}} */
     let tr;
     if (mode === 'physical' && phys) {
       if (!ended) {
-        phys = P.step(phys, input, dt, paused ? 0 : rate, paused);
+        phys = P.step(phys, photoOn ? { ...input, look: [0, 0], roll: 0 } : input, dtSim, frozen ? 0 : rate, frozen);
+        if (phys.assistStatus.includes('ergoregion') && !ergoShown) {
+          ergoShown = true;
+          $('card').innerHTML = ERGO_CARD + '<p><button id="cardClose">Close</button></p>';
+          $('card').hidden = false;
+          $('cardClose').onclick = () => { $('card').hidden = true; };
+        }
         if (phys.assistStatus) note = phys.assistStatus.startsWith('hover unavailable') || phys.assistStatus.includes('needs') || phys.assistStatus.includes('only') ? phys.assistStatus : note;
         if (phys.event) { ended = phys.event; showEnding(ended); }
       }
@@ -214,7 +290,7 @@ async function main() {
         predictor.record(s);
       }
     } else {
-      const step = freeStep(S, free, paused ? { ...input, move: [0, 0, 0] } : input, dt, paused ? 0 : rate);
+      const step = freeStep(S, free, frozen ? { ...input, move: [0, 0, 0], ...(photoOn ? { look: [0, 0], roll: 0 } : {}) } : input, dtSim, frozen ? 0 : rate);
       free = step.state;
       if (step.note) note = step.note;
       const fr = freeFrame(S, free);
@@ -224,6 +300,21 @@ async function main() {
     }
     // inside the Kerr horizon nothing can be shown (rendering from inside is out of scope): keep the last view
     if (Number.isFinite(tr.pos[1]) && !(S.id === 'kerr' && tr.pos[1] <= S.rHorizon * 1.005)) renderer.frame(now, tr);
+    // frames count only once the encoder runs (its 'start' event: ~3 s after start() the first time in Chrome; frames
+    // requested before it are lost)
+    if (rec) {
+      if (rec.ready) { rec.track.requestFrame(); rec.frames++; $('rec').textContent = `● REC ${(rec.frames / 60).toFixed(1)} s (V stops)`; }
+      else $('rec').textContent = '● preparing the video encoder…';
+    }
+    lastTracer = tr;
+    // automatic quality: drop to the low face size if a medium cubemap takes too long here (G7)
+    if (settings.faceN === 'auto' && autoFace === 256) {
+      const lr = renderer.stats().lastRefresh;
+      if (lr && lr.N === 256 && lr.wallMs > (S.id === 'st3cr' ? 6000 : 800)) { autoFace = 128; renderer.configure(renderSettings(settings)); note = 'quality lowered automatically (slow cubemaps on this device)'; }
+    }
+    // clock comparison
+    clocks.tau = mode === 'physical' && phys ? phys.ship.tau : free.tau;
+    clocks.t = tr.pos[0];
     // markers: prograde / retrograde (motion relative to the ZAMO) and the hole
     const z = zamo(tr.g);
     const tanX = Math.tan(Number(settings.fov) * DEG / 2), tanY = tanX * canvas.height / canvas.width;
@@ -253,7 +344,7 @@ async function main() {
           const ev = predictor.event;
           const orbit = ev === 'horizon' || ev === 'throat' || ev.startsWith('singularity') ? 'plunging' : ev === 'escape' ? 'escaping' : inv.E < 1 ? 'bound' : 'unbound';
           const R = S.id === 'kerr' ? kerrRadii(S.params.a) : null;
-          lines = hudPhysicalLines({
+          lines = hudPhysicalLines({ units: units(),
             tau: s.tau, pos: tr.pos, dtdtau: uT[0], warp: WARPS[phys.warpIdx], warpLimited: phys.lastWarp < WARPS[phys.warpIdx] - 1e-9, paused,
             v: Math.sqrt(Math.max(0, 1 - 1 / (gam * gam))), gamma: gam, orbit, acc: phys.lastAcc, level: phys.level, dv: s.dv,
             ahead: shift([1, 0, 0]), behind: shift([-1, 0, 0]), avg: [[1, 0, 0], [-1, 0, 0], [0, 1, 0], [0, -1, 0], [0, 0, 1], [0, 0, -1]].map(shift).reduce((a, b) => a + b, 0) / 6,
@@ -262,10 +353,14 @@ async function main() {
             assist: phys.assist ? phys.assistStatus : '', expert: !!settings.__expert, E: inv.E, L: inv.L, Q: inv.Q, uu: inv.uu, ortho: inv.ortho, note,
           });
         } else {
-          lines = hudLines(free, tr, /** @type {any} */ (lastFrame).uT, shift, { fps: 1000 / iv.median, p90: iv.p90, refreshes: rs.refreshes, idle: rs.idle, last: rs.lastRefresh, staleness: rs.view?.staleness, paused, note });
+          lines = hudLines(free, tr, /** @type {any} */ (lastFrame).uT, shift, { units: units(), fps: 1000 / iv.median, p90: iv.p90, refreshes: rs.refreshes, idle: rs.idle, last: rs.lastRefresh, staleness: rs.view?.staleness, paused, note });
         }
         $('hud').textContent = lines.join('\n');
         note = '';
+        $('clocks').hidden = !settings.clocks;
+        if (settings.clocks) $('clocks').innerHTML = clockCard(clocks, units());
+        const ph = renderer.photoState();
+        if (ph) $('photo').textContent = ph.done ? `photo mode: traced in ${(ph.wallMs / 1000).toFixed(1)} s, every pixel (K saves it, O leaves)` : `photo mode: tracing every pixel… ${Math.round(100 * ph.progress)}%`;
       }
     }
     drawMarkers(octx, overlay.width, overlay.height, tanX, tanY * overlay.height / overlay.width * canvas.width / canvas.height, marks);
@@ -275,7 +370,7 @@ async function main() {
       if (mode === 'physical' && phys) { const u = phys.ship.u; const n = Math.hypot(u[1], u[2], u[3]); vel = n > 0 ? [u[1] / n, u[2] / n, u[3] / n] : null; }
       const R = S.id === 'kerr' ? kerrRadii(S.params.a) : null;
       map.draw(S, { X, vel, pred: mode === 'physical' ? predictor.points : [], predEvent: predictor.event, trail: mode === 'physical' ? predictor.trail : [],
-        discIn: R ? Math.sqrt(R.iscoPro ** 2 + S.params.a ** 2) : 0.02, discOut: Number(settings.mu) + 5 * Number(settings.sigma) });
+        discIn: R ? Math.sqrt(R.iscoPro ** 2 + S.params.a ** 2) : 0.02, discOut: Number(settings.mu) + 5 * Number(settings.sigma), kmPerM: units().kmPerM });
     }
     if (now - saveT > 2000) { saveT = now; saveState(settings, { spacetime: settings.spacetime, ...free }); }
     requestAnimationFrame(frame);
@@ -294,6 +389,9 @@ async function main() {
     start: (/** @type {string} */ id) => { const sc = scenarios.find((s) => s.id === id); if (sc) startScenario(sc); return !!sc; },
     board, leave,
     setRate: (/** @type {number} */ r) => { settings.timeRate = r; },
+    screenshot, toggleVideo, togglePhoto, photo: () => renderer.photoState(), clocks: () => ({ ...clocks }), caption,
+    lastPng: () => (lastPng ? Array.from(lastPng.slice(0, 4096)) : null), lastVideo: () => (lastVideo ? { size: lastVideo.size, type: lastVideo.type } : null),
+    recording: () => (rec ? { ready: rec.ready, frames: rec.frames } : null),
   };
   document.body.dataset.ready = '1';
   let seen = true;

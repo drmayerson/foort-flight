@@ -40,12 +40,17 @@ test('the ergosphere: hovering is refused with the reason', async ({ page }) => 
 
 test('hover at 6 M holds the radius in the game', async ({ page }) => {
   await G(page, (g) => g.start('hover-6m'));
-  await page.waitForTimeout(500);
+  // sample until 40 M of game time have passed (the wall time depends on the machine's load)
   const rs = [];
-  for (let k = 0; k < 12; k++) { await page.waitForTimeout(250); rs.push(await G(page, (g) => g.state().tracer.pos[1])); }
+  for (let k = 0; k < 200; k++) {
+    await page.waitForTimeout(250);
+    const st = await G(page, (g) => ({ r: g.state().tracer.pos[1], tau: g.state().phys.ship.tau }));
+    rs.push(st.r);
+    if (st.tau > 40) break;
+  }
+  expect(await G(page, (g) => g.state().phys.ship.tau)).toBeGreaterThan(40);
   expect(Math.max(...rs.map((r) => Math.abs(r - 6)))).toBeLessThan(1e-3);
   await expect(page.locator('#hud')).toContainText('assist: hover here');
-  expect(await G(page, (g) => g.state().phys.ship.tau)).toBeGreaterThan(40);
 });
 
 test('engine and assist keys; the map; leaving and boarding', async ({ page }) => {

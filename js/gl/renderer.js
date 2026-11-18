@@ -12,7 +12,10 @@ import { CubemapTracer } from './cubemap.js';
 import { BakeClient } from '../../vendor/foort-gpu/js/bake/client.js';
 import { autoNoiseField, loadNoiseField } from '../../vendor/foort-gpu/js/noise/noiseField.js';
 import { referenceFrame, shipToReference, staleness } from '../physics/refFrame.js';
-import { EMISSION } from '../render/defaults.js';
+import { EMISSION, gameTier } from '../render/defaults.js';
+import { pinholeUniforms, withCamera } from '../camera/generalTetrad.js';
+import { gpuTraceSetup, tableSpec, fluidSpec } from '../../vendor/foort-gpu/js/gpu/traceConfig.js';
+import { CUBE_R_BOUNDARY } from './cubemap.js';
 
 /** @typedef {import('../physics/spacetime.js').Spacetime} Spacetime */
 /** @typedef {{pos: number[], frame: import('../camera/generalTetrad.js').Frame, g: number[][]}} TracerState  ship in tracer coordinates */
@@ -59,6 +62,8 @@ export async function createRenderer(canvas) {
   let lastRefresh = null;
   /** @type {any} */
   let lastView = null;
+  /** photo mode (G7): a direct trace of the screen at full resolution, shown instead of the cubemap @type {any} */
+  let photo = null;
   const nextFrame = () => new Promise((r) => requestAnimationFrame(() => r(null)));
 
   async function refreshLoop(/** @type {number} */ gen) {
@@ -110,6 +115,45 @@ export async function createRenderer(canvas) {
       if (restart && S) { loopGen++; cubes.cancel(); refreshLoop(loopGen); }
     },
     settings: () => settings,
+
+    /**
+     * Photo mode (plan 7.7, G7): trace the current camera directly, pixel by pixel, at the canvas's resolution (no
+     * cubemap, no blending); shown until stopPhoto. The cubemap refresh pauses meanwhile.
+     * @param {TracerState} ship
+     */
+    async startPhoto(ship) {
+      if (!S) return;
+      api.stopPhoto();
+      loopGen++; cubes.cancel();
+      const w = canvas.width, h = canvas.height, [, r, th] = ship.pos;
+      /** @type {any} */
+      const view = { metric: S.id, metricParams: S.params, camera: { r, theta: th, phi: 0, screen: 1 }, N: w, rBoundary: Math.max(1.01 * r, CUBE_R_BOUNDARY),
+        path: 'auto', texelReuse: true, fluid: { xi: 1, betaR: 1, betaPhi: 1, model: 'banded' }, ...gameTier(settings.tier, S.entry.mode) };
+      const ts = tableSpec(view), fs = fluidSpec(view);
+      const tables = ts ? (await bakes.get(ts)).tables : undefined;
+      const fluid = (await bakes.get(fs)).tables;
+      const setup = gpuTraceSetup(view, tables, fluid);
+      await tracer.prepare(setup.program);
+      if (ts && ts.key !== cubes.tablesKey) { tracer.uploadTables(tables); cubes.tablesKey = ts.key; }
+      if (fs.key !== cubes.fluidKey) { tracer.uploadFluid(fluid); cubes.fluidKey = fs.key; }
+      const cam = pinholeUniforms({ gdd: ship.g, position: ship.pos, r0: S.rHorizon, frame: ship.frame, fov: settings.fov });
+      const sx = cam.uScreen[1][2];
+      cam.uScreen = ['4f', [0, 0, sx, sx * h / w]];
+      const uniforms = withCamera(/** @type {any} */ (setup.uniforms), cam);
+      const T = tracer.makeTarget(w, h);
+      tracer.clearTarget(T);
+      const job = sched.submit(setup.program, uniforms, T);
+      photo = { T, uniforms, tail: setup.tail, M: S.metric.massADM, pos: ship.pos, job, started: performance.now(), done: false };
+      job.done.then((r) => { if (photo && photo.job === job) { photo.done = !r.cancelled; photo.wallMs = r.wallMs; } });
+    },
+    stopPhoto() {
+      if (!photo) return;
+      sched.cancelAll();
+      tracer.freeTarget(photo.T);
+      photo = null;
+      if (S) { loopGen++; refreshLoop(loopGen); }
+    },
+    photoState: () => (photo ? { progress: photo.job.raysDone / photo.job.raysTotal, done: photo.done, wallMs: photo.wallMs ?? NaN } : null),
     /** @param {TexImageSource} img */
     setSkyPicture: (img) => display.setSkyPicture(img),
 
@@ -122,7 +166,14 @@ export async function createRenderer(canvas) {
       sched.frame(now);
       const w = canvas.width, h = canvas.height;
       lastView = null;
-      if (current) {
+      if (photo) {
+        const P = {
+          colorMode: settings.colorMode, skyMode: settings.skyMode, em: settings.em ?? EMISSION, exposure: settings.exposure, autoExposure: true,
+          T0: settings.T0, rRef: 6, sigmaN: settings.sigmaN, tObs: photo.pos[0], slowLight: true, azimuth: 0,
+          starBrightness: settings.starBrightness, pixelAngle: settings.fov / w,
+        };
+        display.draw(photo.T, photo.uniforms, tracer.fluid(), photo.tail, P, { M: photo.M });
+      } else if (current) {
         const m = shipToReference(ship.g, ship.frame, current.ref.gdd, current.ref.frame, current.ref.v);
         const tan = Math.tan(settings.fov / 2), aspect = w / h;
         const P = {

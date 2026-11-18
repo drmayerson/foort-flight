@@ -13,9 +13,11 @@ const FAMILY = /** @type {Record<string, string>} */ ({ zamo: 'ZAMO', static: 's
  * @param {{pos: number[], g: number[][]}} tracer the camera in tracer coordinates
  * @param {number[]} uT the observer's 4-velocity (tracer coordinates)
  * @param {(d: number[]) => number} shift ship factor for a look direction (f, right, up)
- * @param {{fps: number, p90: number, refreshes: number, idle: boolean, last: any, staleness: any, paused: boolean, note: string}} st
+ * @param {{fps: number, p90: number, refreshes: number, idle: boolean, last: any, staleness: any, paused: boolean, note: string, units: any}} st
  */
 export function hudLines(free, tracer, uT, shift, st) {
+  /** @type {import('./units.js').GameUnits} */
+  const U = st.units;
   const [t, r, th] = tracer.pos;
   const z = zamo(tracer.g);
   const gamma = z ? -innerProduct(tracer.g, uT, z.u) : NaN;
@@ -25,8 +27,8 @@ export function hudLines(free, tracer, uT, shift, st) {
   const avg = dirs.map(shift).reduce((a, b) => a + b, 0) / dirs.length;
   const f = (/** @type {number} */ x, d = 3) => (Number.isFinite(x) ? x.toFixed(d) : '–');
   const lines = [
-    `τ ${f(free.tau, 1)} M   t ${f(t, 1)} M   dt/dτ ${f(uT[0], 3)}${st.paused ? '   ⏸ paused' : ''}`,
-    `r ${f(r, r < 1 ? 4 : 2)} M   θ ${f(th * DEG, 1)}° (latitude ${f(90 - th * DEG, 1)}°)`,
+    `τ ${U.time(free.tau)}   t ${U.time(t)}   dt/dτ ${f(uT[0], 3)}${st.paused ? '   ⏸ paused' : ''}`,
+    `r ${U.length(r)}   θ ${f(th * DEG, 1)}° (latitude ${f(90 - th * DEG, 1)}°)`,
     `riding with: ${FAMILY[free.family] ?? free.family}   v vs ZAMO ${f(v, 3)} c (γ ${f(gamma, 3)})`,
     `light ahead ×${f(ahead)}   behind ×${f(behind)}   sky average ×${f(avg)}`,
     `${f(st.fps, 0)} fps (p90 ${f(st.p90, 1)} ms)   ${st.idle ? 'view up to date' : 'refreshing'}${st.last ? ` · last cubemap ${(st.last.wallMs / 1000).toFixed(2)} s` : ''}   speed ${f(free.speed, 2)} r/s`,
@@ -42,6 +44,9 @@ export const HELP_HTML = `<h2>Flying</h2>
 <tr><th>roll</th><td>Q / E</td></tr>
 <tr><th>speed</th><td>mouse wheel (a fraction of your distance from the centre per second)</td></tr>
 <tr><th>pause</th><td>P</td></tr>
+<tr><th>screenshot</th><td>K (a PNG; the scene and a link to it are stored inside)</td></tr>
+<tr><th>video</th><td>V to start and stop (fixed time steps: smooth whatever the frame rate)</td></tr>
+<tr><th>photo mode</th><td>O: pause and trace every pixel directly at full quality; move to leave</td></tr>
 <tr><th>this help</th><td>?</td></tr>
 <tr><th>gamepad</th><td>left stick moves, right stick looks, triggers up and down, bumpers roll, d-pad speed, start pauses</td></tr>
 <tr><th>touch</th><td>left half of the screen: move; right half: look</td></tr>
@@ -86,12 +91,16 @@ export function hudPhysicalLines(o) {
   const e = (/** @type {number} */ x, d = 2) => (Number.isFinite(x) ? x.toExponential(d) : '–');
   const [t, r, th] = o.pos;
   const thrust = Math.hypot(...o.acc);
+  /** @type {import('./units.js').GameUnits} */
+  const U = o.units;
+  const where = U.physical ? '' : ` at ${U.label}`;
+  const tidalG = U.g(o.tidal * (100 / U.metersPerM));
   const lines = [
-    `τ ${f(o.tau, 1)} M   t ${f(t, 1)} M   dt/dτ ${f(o.dtdtau, 3)}   warp ${o.warp}×${o.warpLimited ? ' (limited)' : ''}${o.paused ? '   ⏸ paused' : ''}`,
-    `r ${f(r, r < 1 ? 4 : 2)} M   θ ${f(th * 180 / Math.PI, 1)}°   v vs ZAMO ${f(o.v, 3)} c (γ ${f(o.gamma, 3)})   orbit: ${o.orbit}`,
-    `thrust ${e(thrust)} c⁴/GM = ${e(thrust * SGRA.accel / G0)} g at Sgr A*   level ${e(o.level)} (wheel)   Δv ${f(o.dv, 3)} c`,
+    `τ ${U.time(o.tau)}   t ${U.time(t)}   dt/dτ ${f(o.dtdtau, 3)}   warp ${o.warp}×${o.warpLimited ? ' (limited)' : ''}${o.paused ? '   ⏸ paused' : ''}`,
+    `r ${U.length(r)}   θ ${f(th * 180 / Math.PI, 1)}°   v vs ZAMO ${f(o.v, 3)} c (γ ${f(o.gamma, 3)})   orbit: ${o.orbit}`,
+    `thrust ${e(thrust)} c⁴/GM = ${e(U.g(thrust))} g${where}   level ${e(o.level)} (wheel)   Δv ${f(o.dv, 3)} c`,
     `light ahead ×${f(o.ahead)}   behind ×${f(o.behind)}   sky average ×${f(o.avg)}`,
-    `tidal over 100 m: ${e(o.tidal * (100 / SGRA.metersPerM) * SGRA.accel / G0)} g at Sgr A*${o.tidal * (100 / SGRA.metersPerM) * SGRA.accel / G0 > 1e3 ? '  ⚠ spaghettification' : ''}`,
+    `tidal over 100 m: ${e(tidalG)} g${where}${tidalG > 1e3 ? '  ⚠ spaghettification' : ''}`,
     `${f(o.fps, 0)} fps (p90 ${f(o.p90, 1)} ms)   ${o.idle ? 'view up to date' : 'refreshing'}${o.radii ? `   ${o.radii}` : ''}`,
   ];
   if (o.assist) lines.push(`▶ assist: ${o.assist}`);
@@ -134,4 +143,20 @@ export function drawMarkers(ctx, w, h, tanX, tanY, list) {
     if (m.shape === 'hole') { ctx.beginPath(); ctx.moveTo(x - R * 1.4, y); ctx.lineTo(x - R, y); ctx.moveTo(x + R, y); ctx.lineTo(x + R * 1.4, y); ctx.stroke(); }
     ctx.fillText(m.label, x + R + 3 * s, y - R);
   }
+}
+
+/** the ergoregion card (plan G7: "why can't I hover here") */
+export const ERGO_CARD = `<h2>Why can't I hover here?</h2>
+<p>You are inside the <b>ergoregion</b> of a spinning black hole (the violet surface on the map). There, space itself is
+dragged around the hole faster than light could move against it. To hover you would have to stay at a fixed place as
+seen from far away, which would mean moving backwards through the dragged space faster than light: impossible, however
+strong your engine.</p>
+<p>Every observer here circles the hole in its direction of spin. You can still orbit, fall, or climb out (point away
+from the hole with 5 and fire with Shift). Outside the ergoregion hovering is possible again, at a price: near the
+horizon it takes an enormous, ever-growing thrust.</p>`;
+
+/** the clock comparison (plan G7): the ship's clock against the outside clock since the scenario began */
+export function clockCard(/** @type {{tau0: number, t0: number, tau: number, t: number, ratios: number[]}} */ c, /** @type {import('./units.js').GameUnits} */ U) {
+  const dtau = c.tau - c.tau0, dt = c.t - c.t0;
+  return `<b>Clocks</b> since the start: your clock ${U.time(dtau)}; outside ${U.time(dt)} (×${(dt / Math.max(dtau, 1e-9)).toFixed(2)})`;
 }

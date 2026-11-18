@@ -32,7 +32,7 @@ export function createMap(cv) {
   return {
     /**
      * @param {Spacetime} S
-     * @param {{X: number[], vel: number[]|null, pred: number[][], predEvent: string, trail: number[][], discIn: number, discOut: number}} d
+     * @param {{X: number[], vel: number[]|null, pred: number[][], predEvent: string, trail: number[][], discIn: number, discOut: number, kmPerM?: number|null}} d
      */
     draw(S, d) {
       const W = cv.width = Math.round(cv.clientWidth * devicePixelRatio), H = cv.height = Math.round(cv.clientHeight * devicePixelRatio);
@@ -120,6 +120,13 @@ export function createMap(cv) {
       ctx.fillStyle = '#e6e8ee';
       ctx.fillText('map — not what you see (coordinates; wheel: zoom, drag: pan, double-click: reset)', 8 * devicePixelRatio, 16 * devicePixelRatio);
       ctx.strokeStyle = '#2a3140'; ctx.beginPath(); ctx.moveTo(half, 0); ctx.lineTo(half, H); ctx.stroke();
+      // scale bar (M, and km with physical units)
+      const want = 0.25 * half / s, e10 = 10 ** Math.floor(Math.log10(want)), fr = want / e10;
+      const L = (fr >= 5 ? 5 : fr >= 2 ? 2 : 1) * e10, px = L * s;
+      const bx = W - px - 12 * devicePixelRatio, by = H - 14 * devicePixelRatio;
+      ctx.fillStyle = '#e6e8ee'; ctx.fillRect(bx, by, px, 2 * devicePixelRatio);
+      const km = d.kmPerM ? ` = ${(L * d.kmPerM).toPrecision(2)} km` : '';
+      ctx.fillText(`${+L.toPrecision(3)} M${km}`, bx, by - 4 * devicePixelRatio);
     },
   };
 }
