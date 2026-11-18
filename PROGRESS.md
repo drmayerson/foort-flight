@@ -466,3 +466,50 @@ Branch `g7-polish`.
 
 - The first video in a page starts about 3 s after V (Chrome's encoder); the HUD says so meanwhile.
 - With physical units the HUD lines get longer; on phones the HUD font is smaller (G4 CSS).
+
+## G8 — Polish, documentation, acceptance (2026-11-18): Stage 2A complete
+
+Branch `g8-acceptance`.
+
+### Delivered
+
+- README rewritten: player guide (requirements, modes, controls, scenarios, the HUD and map, physics notes) and developer guide (layout, vendoring and sync, adding a scenario, how the tracer, cubemap, display and ship work).
+- CREDITS completed (sky-picture terms, blackbody and tone-map sources); DECISIONS complete through G8.
+- `dev/scripts/g8Acceptance.mjs`: the acceptance timings; and four fixes it found (DECISIONS G8): the ship clock's frame advance, the prediction's slicing, the automatic quality rule, the coarse fuzzball cubemap.
+
+### Acceptance (this laptop: AMD Radeon integrated GPU, Chrome, headed; `dev/reports/g8/acceptance_chrome.json`)
+
+| case | target | measured |
+|---|---|---|
+| display while turning (Kerr, automatic quality) | 60 fps | 59.9 fps, frame p90 16.9 ms |
+| cubemap refresh, Kerr: full 6 × 256² | ≤ 1 s | 0.32 s median (max 0.50 s) |
+| cubemap refresh, Kerr: coarse | ≤ 0.2 s | 0.12 s (warm); 0.5–0.8 s for the very first, which includes compiling the shader |
+| cubemap refresh, fuzzball λ = 5e-3: full | ≤ 5 s | 3.8 s median (3 refreshes; one 5.4 s) |
+| cubemap refresh, fuzzball: coarse | ≤ 0.5 s | 0.35 s (warm); 4–7 s for the very first (table bake and the compaction shader's compile) |
+| ship integration plus prediction | ≤ 2 ms per frame | 1.1 ms median (p90 2.2 ms; prediction 0.6 ms of it) |
+
+Tests: Vitest 72/72, Playwright 31/31 (the G6 "leave the ship" test now pauses before comparing radii: it was load-dependent), type check clean. G5 harness numbers unchanged after the integrator fixes (`dev/reports/g5/harness_log.txt`).
+
+### Cross-device status
+
+| device | status |
+|---|---|
+| laptop, Chrome | all milestones measured here |
+| laptop, Firefox 160 | G0/G0b and G1 measured by the user (WebGL2 60 fps for black holes; fuzzball ~40 fps before G3's ray splitting); the game itself not yet run |
+| phone (Samsung Xclipse 920, Chrome 157) | G0b and G1 measured by the user (WebGL2 works, 58 fps Kerr tracing); the game itself not yet run (phone defaults: face 128, 0.8 Mpixel) |
+
+### Next steps after Stage 2A
+
+From the plan (Section 1.2, Stage 2B or later):
+1. **Missions and scoring** (Stage 2B): the scenario format already has room for `goals`.
+2. **In-world objects** (beacons, other ships): needs rays aimed at objects.
+3. **Rendering from inside a horizon** (now the flight ends there).
+4. **Other metrics** (FOORT-GPU's Johannsen, Manko–Novikov, Reissner–Nordström are vendored already).
+5. A WebGPU backend behind the renderer interface, multiplayer, sound, translation (Dutch, as FOORT-GPU).
+
+Open items from 2A (DECISIONS, PROGRESS):
+- the user's device round on the finished game (Firefox, phone, touch, gamepad);
+- the homepage link in `drmayerson.github.io` (plan G8: only with approval);
+- quality: soft beads along the shadow's edge and texel-sized stars inside the fuzzball's cap (cubemap texels at lensing discontinuities); cross-fading between cubemaps; refresh priority from a per-pixel error estimate; staleness and direct-vs-cubemap debug views in the game's expert panel;
+- the long-ray splitting is option 1 (game-side, as chosen); option 2 (an upstream "resume in place" mode in FOORT-GPU) stays possible if wanted;
+- the sky pictures' exact source pages, to confirm their licences file by file.

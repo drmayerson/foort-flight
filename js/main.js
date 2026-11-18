@@ -203,6 +203,10 @@ async function main() {
   let lastFrame = null;
   /** @type {any} */
   let lastTracer = null;
+  /** @type {number[]} */
+  const shipCpu = [];
+  /** @type {number[]} */
+  const predCpu = [];
   const units = () => gameUnits(String(settings.units));
   const caption = () => {
     const U = units(), p = lastTracer?.pos ?? [0, 0, 0, 0];
@@ -270,6 +274,7 @@ async function main() {
     /** @type {{pos: number[], frame: any, g: number[][]}} */
     let tr;
     if (mode === 'physical' && phys) {
+      const c0 = performance.now();
       if (!ended) {
         phys = P.step(phys, photoOn ? { ...input, look: [0, 0], roll: 0 } : input, dtSim, frozen ? 0 : rate, frozen);
         if (phys.assistStatus.includes('ergoregion') && !ergoShown) {
@@ -286,9 +291,14 @@ async function main() {
       tr = { pos, frame: frameToTracer(S, s.X, { u: s.u, f: s.e[0], right: s.e[1], up: s.e[2] }), g: S.gTracer(pos[1], pos[2]) };
       if (!ended) {
         if (now - predT > 300) { predT = now; predictor.restart(s); }
-        predictor.work(1);
+        const cp = performance.now();
+        predictor.work(0.5);
+        predCpu.push(performance.now() - cp); if (predCpu.length > 240) predCpu.shift();
         predictor.record(s);
       }
+      // CPU time of the ship's integration and prediction this frame (plan G8 acceptance: <= 2 ms)
+      const cms = performance.now() - c0;
+      shipCpu.push(cms); if (shipCpu.length > 240) shipCpu.shift();
     } else {
       const step = freeStep(S, free, frozen ? { ...input, move: [0, 0, 0], ...(photoOn ? { look: [0, 0], roll: 0 } : {}) } : input, dtSim, frozen ? 0 : rate);
       free = step.state;
@@ -309,8 +319,9 @@ async function main() {
     lastTracer = tr;
     // automatic quality: drop to the low face size if a medium cubemap takes too long here (G7)
     if (settings.faceN === 'auto' && autoFace === 256) {
-      const lr = renderer.stats().lastRefresh;
-      if (lr && lr.N === 256 && lr.wallMs > (S.id === 'st3cr' ? 6000 : 800)) { autoFace = 128; renderer.configure(renderSettings(settings)); note = 'quality lowered automatically (slow cubemaps on this device)'; }
+      // the last full refresh of this spacetime (not of the one before a switch)
+      const lr = renderer.history().filter((x) => x.spacetime === S.id && x.N === 256).at(-1);
+      if (lr && lr.wallMs - (lr.setupMs ?? 0) > (S.id === 'st3cr' ? 6000 : 800)) { autoFace = 128; renderer.configure(renderSettings(settings)); note = 'quality lowered automatically (slow cubemaps on this device)'; }
     }
     // clock comparison
     clocks.tau = mode === 'physical' && phys ? phys.ship.tau : free.tau;
@@ -392,6 +403,8 @@ async function main() {
     screenshot, toggleVideo, togglePhoto, photo: () => renderer.photoState(), clocks: () => ({ ...clocks }), caption,
     lastPng: () => (lastPng ? Array.from(lastPng.slice(0, 4096)) : null), lastVideo: () => (lastVideo ? { size: lastVideo.size, type: lastVideo.type } : null),
     recording: () => (rec ? { ready: rec.ready, frames: rec.frames } : null),
+    shipCpu: () => summarize(shipCpu),
+    predCpu: () => summarize(predCpu),
   };
   document.body.dataset.ready = '1';
   let seen = true;

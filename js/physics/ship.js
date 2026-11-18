@@ -107,7 +107,7 @@ export function createShipIntegrator(S, o = {}) {
    * Advance by dtau of proper time with body thrust `acc` (ship-frame components, M^-1) and body rotation rate `w`
    * (rad / M). Returns the new state and the ending event ('' if none); on numerical failure the last good state.
    * @param {ShipState} s0 @param {number} dtau @param {number[]} [acc] @param {number[]} [w] @param {{maxSteps?: number}} [lim]
-   * @returns {{state: ShipState, event: string, steps: number}}
+   * @returns {{state: ShipState, event: string, steps: number, done: number}} done: the proper time integrated
    */
   function advance(s0, dtau, acc = [0, 0, 0], w = [0, 0, 0], lim = {}) {
     let s = s0;
@@ -148,15 +148,18 @@ export function createShipIntegrator(S, o = {}) {
       done += hh;
       y = y5;
       k1 = ks[6];   // FSAL
-      h = hh * Math.min(5, Math.max(0.2, 0.9 * Math.max(err, 1e-10) ** -0.2));
+      // a step shortened only to land on the end of the interval does not shrink the natural step size (G8: carried
+      // into the next frame, it cost ~10 steps per frame instead of 1-2)
+      const hNew = hh * Math.min(5, Math.max(0.2, 0.9 * Math.max(err, 1e-10) ** -0.2));
+      h = hh < Math.min(h, hRot) * 0.999 ? Math.max(h, Math.min(hNew, h)) : hNew;
       const ev = event(y.slice(0, 4));
       const cand = { ...s, ...unpack(y), tau: s.tau + hh, dv: s.dv + amag * hh };
-      if (ev === 'numerical') return { state: s, event: ev, steps };
+      if (ev === 'numerical') return { state: s, event: ev, steps, done: done - hh };
       s = cand;
       if (++sinceOrtho >= 10) { s = orthonormalise(s); y = pack(s); k1 = rhs(y, acc, w); sinceOrtho = 0; }
-      if (ev) return { state: s, event: ev, steps };
+      if (ev) return { state: s, event: ev, steps, done };
     }
-    return { state: s, event: '', steps };
+    return { state: s, event: '', steps, done };
   }
 
   return {

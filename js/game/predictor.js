@@ -35,9 +35,10 @@ export class Predictor {
     if (!this.cur) return;
     const t0 = performance.now();
     while (performance.now() - t0 < budgetMs && this.cur) {
-      const res = this.I.advance(this.cur, this.horizonTau / 300, [0, 0, 0], [0, 0, 0], { maxSteps: 200 });
+      // small slices (about one step each), so the time budget is kept to a step (G8: 1/300 of the horizon overshot it)
+      const res = this.I.advance(this.cur, this.horizonTau / 2000, [0, 0, 0], [0, 0, 0], { maxSteps: 4 });
       this.cur = res.state;
-      this.next.push([res.state.X[1], res.state.X[2], res.state.X[3]]);
+      if ((this.n = (this.n ?? 0) + 1) % 4 === 0) this.next.push([res.state.X[1], res.state.X[2], res.state.X[3]]);
       if (res.event || res.state.tau - this.started >= this.horizonTau) {
         this.points = this.next; this.event = res.event; this.cur = null;
       }

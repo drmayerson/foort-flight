@@ -65,10 +65,15 @@ test('engine and assist keys; the map; leaving and boarding', async ({ page }) =
   await expect(page.locator('#map')).toBeVisible();
   await page.keyboard.press('m');
   await expect(page.locator('#map')).toBeHidden();
+  // pause first: after the burn the orbit is eccentric and r changes while the test clicks
+  await page.locator('#view').focus();
+  await page.keyboard.press('p');
+  await page.waitForTimeout(100);
   const r1 = await G(page, (g) => g.state().tracer.pos[1]);
   await page.click('#leaveShip');
   expect(await G(page, (g) => g.state().mode)).toBe('free');
   expect(Math.abs(await G(page, (g) => g.state().tracer.pos[1]) - r1)).toBeLessThan(0.5);
+  await page.keyboard.press('p');
   await page.click('#boardHover');
   expect(await G(page, (g) => g.state().mode)).toBe('physical');
   await expect(page.locator('#hud')).toContainText('assist: hover here', { timeout: 3000 });

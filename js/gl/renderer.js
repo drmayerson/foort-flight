@@ -60,6 +60,8 @@ export async function createRenderer(canvas) {
   let loopGen = 0, refreshes = 0, idle = false, noiseName = '';
   /** @type {any} */
   let lastRefresh = null;
+  /** recent cubemap refreshes (G8 acceptance timings) @type {any[]} */
+  const history = [];
   /** @type {any} */
   let lastView = null;
   /** photo mode (G7): a direct trace of the screen at full resolution, shown instead of the cubemap @type {any} */
@@ -80,7 +82,9 @@ export async function createRenderer(canvas) {
       try {
         const ref = referenceFrame(st.g, st.frame);
         const N = current ? settings.faceN : Math.max(32, settings.faceN / 4);
-        cm = await cubes.trace(S, { pos: st.pos, frame: ref.frame, v: ref.v }, { N, tier: settings.tier, split: S.id === 'st3cr' });
+        // long fuzzball rays are split across frames for the continuous refresh; the one coarse cubemap at the start of
+        // a scene is traced in one pass (a few slow frames, but no read-back rounds: G8, coarse in < 0.5 s)
+        cm = await cubes.trace(S, { pos: st.pos, frame: ref.frame, v: ref.v }, { N, tier: settings.tier, split: S.id === 'st3cr' && N >= 128 });
       } catch (e) {
         // e.g. no ZAMO (inside a horizon): the caller keeps the ship out; wait and retry
         console.warn('cubemap refresh failed', e);
@@ -92,6 +96,8 @@ export async function createRenderer(canvas) {
       current = cm;
       refreshes++;
       lastRefresh = { ...cm.stats, N: cm.N };
+      history.push({ N: cm.N, wallMs: cm.stats.wallMs, rounds: cm.stats.rounds, spacetime: S?.id, setupMs: cm.stats.setupMs, firstPassMs: cm.stats.firstPassMs, frames: cm.stats.frames });
+      if (history.length > 50) history.shift();
       await nextFrame();
     }
   }
@@ -212,6 +218,7 @@ export async function createRenderer(canvas) {
       const pt = lastView.refT[0] + dr[0] * lastView.refT[1] + dr[1] * lastView.refT[2] + dr[2] * lastView.refT[3];
       return 1 / (Er * pt);
     },
+    history: () => history.slice(),
     stats: () => ({ refreshes, idle, lastRefresh, cube: current ? { N: current.N, ref: current.ref.pos } : null, sched: sched.stats(), exposure: display.exposure(), view: lastView }),
     hasCube: () => !!current,
   };

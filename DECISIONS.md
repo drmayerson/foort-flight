@@ -132,3 +132,14 @@ float32 and GPU conventions carried over here.
 - 2026-11-18 — **Screenshot (K):** the vendored `snapshotPng`: a PNG with a caption burned in (object, r, θ, mode, scenario), the link in `foort-gpu-url` (the vendored keyword) and the full state as JSON in `foort-flight-state`.
 - 2026-11-18 — **Video (V):** MediaRecorder on the canvas with one requested frame per game frame and a fixed game step of 1/60 s while recording (plan: fixed proper-time steps; WebM VP9/VP8 or MP4, feature-detected by the vendored `videoFormat`). Found: Chrome's encoder starts ~3 s after `start()` the first time in a page (the `start` event), and frames requested before it are lost (the first take came out empty); the game now waits for `start` ("preparing the video encoder…") before it counts and captures frames.
 - 2026-11-18 — **Photo mode (O):** pause and trace the current camera directly at the canvas's resolution and aspect (the G2 direct path; the cubemap refresh pauses); shown until O or any movement; K saves it.
+
+## G8 — Polish, documentation, acceptance
+
+- 2026-11-18 — **Branch `g8-acceptance`** from `main` at `f60b002`. The user asked (mid-G8) to stop after this milestone with a summary.
+- 2026-11-18 — **Acceptance fixes found by `dev/scripts/g8Acceptance.mjs`:**
+  - the frame advance measured progress as a difference of τ (~100 M); at the end of a frame it rounded to zero and the loop spent its 2 ms budget on tiny steps (10 steps and up to 2.4 ms per frame). `advance` now reports the integrated time; one call per frame, 20 steps at a time between budget checks. Also a step shortened only to land on the end of the interval no longer shrinks the natural step size. Now 1 step and 0.2 ms per frame in a circular orbit at 10 M;
+  - the prediction is sliced at 1/2000 of its horizon (≤ 4 steps per call) with a 0.5 ms budget;
+  - the automatic quality step-down looked at the last refresh of any spacetime (a fuzzball cubemap after a switch to Kerr lowered Kerr's quality); it now looks at full refreshes of the current spacetime, without their first-time set-up;
+  - the one coarse fuzzball cubemap at the start of a scene is traced in one pass (no splitting, a few slow frames) instead of 8 read-back rounds: 0.35 s instead of 0.6–0.9 s.
+- 2026-11-18 — **CREDITS:** the sky pictures' terms are given as NASA's (not copyrighted) and ESA/Hubble's (CC BY 4.0) publishing terms; the exact source pages of these files were never recorded (bh-camera, FOORT-GPU), which CREDITS says.
+- 2026-11-18 — **Not done without the user's approval (plan G8):** the homepage link in `drmayerson.github.io`. Cross-device acceptance on Firefox and the phone needs the user's runs.

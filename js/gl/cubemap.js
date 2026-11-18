@@ -28,7 +28,7 @@ const COMPACT_W = 256;
  * @property {any} tail
  * @property {string} program
  * @property {number} M  mass unit (M_ADM)
- * @property {{wallMs: number, rounds: number, frames: number, split: boolean}} stats
+ * @property {{wallMs: number, rounds: number, frames: number, split: boolean, setupMs: number, firstPassMs: number}} stats
  * @property {boolean} cancelled
  */
 
@@ -93,6 +93,7 @@ export class CubemapTracer {
     // (re-)upload the tables only when they change: a refresh of the same spacetime keeps them
     if (ts && ts.key !== this.tablesKey) { this.tracer.uploadTables(tables); this.tablesKey = ts.key; }
     if (fs.key !== this.fluidKey) { this.tracer.uploadFluid(fluid); this.fluidKey = fs.key; }
+    const tSetup = performance.now() - t0;
     const gdd = S.gTracer(r, th);
     const faces = cubeFaceCameras({ gdd, position: ref.pos, r0: S.rHorizon, frame: ref.frame, N: o.N });
     const nAtt = split ? 8 : 6;
@@ -107,10 +108,11 @@ export class CubemapTracer {
     });
     /** @type {Cubemap} */
     const cube = { atlas, N: o.N, ref: { ...ref, gdd }, tail: setup.tail, program, M: S.metric.massADM,
-      stats: { wallMs: 0, rounds: 0, frames: 0, split }, cancelled: false };
+      stats: { wallMs: 0, rounds: 0, frames: 0, split, setupMs: tSetup, firstPassMs: 0 }, cancelled: false };
     const jobs = faces.map((f, k) => this.sched.submit(program, faceUniforms[k], atlas, f.rect));
     const res = await Promise.all(jobs.map((j) => j.done));
     cube.stats.frames += Math.max(...res.map((x) => x.frames));
+    cube.stats.firstPassMs = performance.now() - t0 - tSetup;
     if (gen !== this.generation || res.some((x) => /** @type {any} */ (x).cancelled)) { this.release(atlas, o.N); return { ...cube, cancelled: true }; }
 
     if (split) {

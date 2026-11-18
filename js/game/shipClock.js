@@ -21,12 +21,15 @@ export function advanceFrame(I, s, o) {
   const budget = o.budgetMs ?? 2;
   const t0 = performance.now();
   let st = s, done = 0, event = '';
-  // in slices, so the budget can stop it
-  const slice = Math.max(want / 8, 1e-6);
-  while (done < want - 1e-15) {
-    const r = I.advance(st, Math.min(slice, want - done), o.acc, o.w, { maxSteps: 2000 });
-    done += r.state.tau - st.tau;
+  // one integration call for the whole frame, at most 20 steps at a time so the budget can stop it (G8: cutting the
+  // frame into 8 slices capped the step size and cost ~56 force evaluations per frame instead of ~14)
+  // progress is the integrated proper time the integrator reports (G8: a difference of tau, ~100 M, rounded the end of
+  // a frame to zero progress, and the loop then spent the whole budget on tiny steps)
+  while (done < want * (1 - 1e-12)) {
+    const r = I.advance(st, want - done, o.acc, o.w, { maxSteps: 20 });
+    done += r.done;
     st = r.state;
+    if (r.done === 0 && !r.event) break;
     if (r.event) { event = r.event; break; }
     if (performance.now() - t0 > budget) break;
   }
